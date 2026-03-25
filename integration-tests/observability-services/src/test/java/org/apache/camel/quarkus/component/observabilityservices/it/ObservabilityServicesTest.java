@@ -26,6 +26,7 @@ import io.quarkus.test.junit.QuarkusTest;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
 import org.apache.http.HttpStatus;
+import org.eclipse.microprofile.config.ConfigProvider;
 import org.junit.jupiter.api.Test;
 
 import static org.awaitility.Awaitility.await;
@@ -40,7 +41,8 @@ class ObservabilityServicesTest {
 
     @Test
     void testHealthUpStatus() {
-        RestAssured.when().get("/observe/health").then()
+        // Use testing management port
+        RestAssured.when().get(getManagementEndpointUrl("health")).then()
                 .contentType(ContentType.JSON)
                 .header("Content-Type", containsString("charset=UTF-8"))
                 .body("status", is("UP"),
@@ -53,7 +55,8 @@ class ObservabilityServicesTest {
 
     @Test
     void testLivenessUpStatus() {
-        RestAssured.when().get("/observe/health/live").then()
+        // Use testing management port
+        RestAssured.when().get(getManagementEndpointUrl("health/live")).then()
                 .contentType(ContentType.JSON)
                 .header("Content-Type", containsString("charset=UTF-8"))
                 .body("status", is("UP"),
@@ -62,7 +65,8 @@ class ObservabilityServicesTest {
 
     @Test
     void testReadinessUpStatus() {
-        RestAssured.when().get("/observe/health/ready").then()
+        // Use testing management port
+        RestAssured.when().get(getManagementEndpointUrl("health/ready")).then()
                 .contentType(ContentType.JSON)
                 .header("Content-Type", containsString("charset=UTF-8"))
                 .body("status", is("UP"),
@@ -71,7 +75,8 @@ class ObservabilityServicesTest {
 
     @Test
     void testMetricsStatus() {
-        RestAssured.when().get("/observe/metrics").then()
+        // Use testing management port
+        RestAssured.when().get(getManagementEndpointUrl("metrics")).then()
                 .header("Content-Type", containsString("application/openmetrics-text"))
                 .statusCode(HttpStatus.SC_OK);
     }
@@ -110,9 +115,16 @@ class ObservabilityServicesTest {
             assertEquals("direct://start", spans.get(2).get("camel.uri"));
             assertEquals("INTERNAL", spans.get(2).get("kind"));
 
-            assertEquals("0000000000000000", spans.get(3).get("parentId"));
+            assertEquals(spans.get(3).get("parentId"), spans.get(4).get("spanId"));
             assertEquals("direct://start", spans.get(3).get("camel.uri"));
             assertEquals("INTERNAL", spans.get(3).get("kind"));
+
+            assertEquals("0000000000000000", spans.get(4).get("parentId"));
+            assertEquals("/observability-services/trace", spans.get(4).get("url.path"));
+            assertEquals(
+                    "org.apache.camel.quarkus.component.observabilityservices.it.health.ObservabilityServicesResource.trace",
+                    spans.get(4).get("code.function.name"));
+            assertEquals("SERVER", spans.get(4).get("kind"));
         } finally {
             RestAssured.given()
                     .post("/spans/reset")
@@ -131,6 +143,14 @@ class ObservabilityServicesTest {
                 .then()
                 .statusCode(200)
                 .body(is("observability-services-context"));
+    }
+
+    Integer getManagementPort() {
+        return ConfigProvider.getConfig().getValue("quarkus.management.test-port", Integer.class);
+    }
+
+    String getManagementEndpointUrl(String path) {
+        return "http://localhost:%d/observe/%s".formatted(getManagementPort(), path);
     }
 
     static List<Map<String, String>> getSpans() {

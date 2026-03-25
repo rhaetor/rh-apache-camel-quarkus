@@ -22,7 +22,7 @@
     <parent>
         <groupId>org.apache.camel.quarkus</groupId>
         <artifactId>camel-quarkus-langchain4j-chat-parent</artifactId>
-        <version>3.23.0-SNAPSHOT</version>
+        <version>3.35.0-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -33,17 +33,17 @@
     <properties>
         <camel.quarkus.jvmSince>3.11.0</camel.quarkus.jvmSince>
         <camel.quarkus.nativeSince>3.12.0</camel.quarkus.nativeSince>
-        <quarkus.metadata.status>experimental</quarkus.metadata.status>
+        <quarkus.metadata.status>preview</quarkus.metadata.status>
     </properties>
 
     <dependencies>
         <dependency>
-            <groupId>io.quarkiverse.langchain4j</groupId>
-            <artifactId>quarkus-langchain4j-core</artifactId>
+            <groupId>org.apache.camel.quarkus</groupId>
+            <artifactId>camel-quarkus-core</artifactId>
         </dependency>
         <dependency>
             <groupId>org.apache.camel.quarkus</groupId>
-            <artifactId>camel-quarkus-core</artifactId>
+            <artifactId>camel-quarkus-support-langchain4j</artifactId>
         </dependency>
         <dependency>
             <groupId>org.apache.camel</groupId>

@@ -22,7 +22,7 @@
     <parent>
         <groupId>org.apache.camel.quarkus</groupId>
         <artifactId>camel-quarkus-build-parent</artifactId>
-        <version>3.23.0-SNAPSHOT</version>
+        <version>3.35.0-SNAPSHOT</version>
         <relativePath>../poms/build-parent/pom.xml</relativePath>
     </parent>
 
@@ -50,8 +50,10 @@
         <module>httpclient</module>
         <module>httpclient5</module>
         <module>jackson-dataformat-xml</module>
+        <module>jaxb</module>
         <module>jdbc</module>
         <module>jetty</module>
+        <module>langchain4j</module>
         <module>language</module>
         <module>mail</module>
         <module>mongodb</module>

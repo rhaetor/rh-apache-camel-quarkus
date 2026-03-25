@@ -21,11 +21,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import io.qdrant.client.ConditionFactory;
 import io.qdrant.client.PointIdFactory;
 import io.qdrant.client.ValueFactory;
 import io.qdrant.client.VectorsFactory;
 import io.qdrant.client.grpc.Collections;
+import io.qdrant.client.grpc.Common;
 import io.qdrant.client.grpc.Points;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -38,8 +38,10 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import org.apache.camel.Exchange;
 import org.apache.camel.FluentProducerTemplate;
-import org.apache.camel.component.qdrant.Qdrant;
 import org.apache.camel.component.qdrant.QdrantAction;
+import org.apache.camel.component.qdrant.QdrantHeaders;
+
+import static io.qdrant.client.ConditionFactory.matchKeyword;
 
 @Path("/qdrant")
 @ApplicationScoped
@@ -48,13 +50,44 @@ public class QdrantResource {
     @Inject
     FluentProducerTemplate producer;
 
+    // Enum to provide test data
+    public enum TestData {
+        VECTOR_1(9, "VECTOR_1", List.of(0.8f, 0.6f)),
+        VECTOR_2(10, "VECTOR_2", List.of(0.1f, 0.9f)),
+        VECTOR_3(11, "VECTOR_3", List.of(0.7f, 0.7f)),
+        VECTOR_4(12, "VECTOR_4", List.of(-0.3f, -0.9f)),
+        VECTOR_5(13, "VECTOR_5", List.of(1.2f, 0.8f));
+
+        private final int id;
+        private final String payload;
+        private final List<Float> vectors;
+
+        TestData(int id, String payload, List<Float> vectors) {
+            this.id = id;
+            this.payload = payload;
+            this.vectors = vectors;
+        }
+
+        public int getId() {
+            return id;
+        }
+
+        public List<Float> getVectors() {
+            return vectors;
+        }
+
+        public String getPayload() {
+            return payload;
+        }
+    }
+
     @Path("/createCollection")
     @PUT
     @Produces(MediaType.TEXT_PLAIN)
     public Response createCollection() {
 
         producer.to("qdrant:testCollection")
-                .withHeader(Qdrant.Headers.ACTION, QdrantAction.CREATE_COLLECTION)
+                .withHeader(QdrantHeaders.ACTION, QdrantAction.CREATE_COLLECTION)
                 .withBody(
                         Collections.VectorParams.newBuilder()
                                 .setSize(2)
@@ -70,7 +103,7 @@ public class QdrantResource {
     public Response upsert() {
 
         producer.to("qdrant:testCollection")
-                .withHeader(Qdrant.Headers.ACTION, QdrantAction.UPSERT)
+                .withHeader(QdrantHeaders.ACTION, QdrantAction.UPSERT)
                 .withBody(
                         Points.PointStruct.newBuilder()
                                 .setId(PointIdFactory.id(8))
@@ -90,8 +123,43 @@ public class QdrantResource {
     public Response retrieve() {
 
         Exchange exchange = producer.to("qdrant:testCollection")
-                .withHeader(Qdrant.Headers.ACTION, QdrantAction.RETRIEVE)
+                .withHeader(QdrantHeaders.ACTION, QdrantAction.RETRIEVE)
                 .withBody(PointIdFactory.id(8))
+                .request(Exchange.class);
+
+        Collection<?> retrieved = exchange.getIn().getBody(Collection.class);
+        String classes = retrieved.stream().map(e -> e.getClass().getName()).distinct().collect(Collectors.joining("/"));
+        return Response.ok(Integer.toString(retrieved.size()) + "/" + classes).build();
+    }
+
+    @Path("/upsert-other-vectors")
+    @PUT
+    @Produces(MediaType.TEXT_PLAIN)
+    public Response upsertOtherVectors() {
+        for (TestData testData : TestData.values()) {
+            producer.to("qdrant:testCollection")
+                    .withHeader(QdrantHeaders.ACTION, QdrantAction.UPSERT)
+                    .withBody(
+                            Points.PointStruct.newBuilder()
+                                    .setId(PointIdFactory.id(testData.getId()))
+                                    .setVectors(VectorsFactory.vectors(testData.getVectors()))
+                                    .putPayload("text_segment", ValueFactory.value(testData.getPayload()))
+                                    .build())
+                    .request();
+        }
+        return Response.ok().build();
+    }
+
+    @Path("/similarity-search")
+    @GET
+    @Produces(MediaType.TEXT_PLAIN)
+    public Response similaritySearch() {
+
+        Exchange exchange = producer.to("qdrant:testCollection")
+                .withHeader(QdrantHeaders.ACTION, QdrantAction.SIMILARITY_SEARCH)
+                .withHeader(QdrantHeaders.INCLUDE_VECTORS, true)
+                .withHeader(QdrantHeaders.INCLUDE_PAYLOAD, true)
+                .withBody(List.of(0.75f, 0.65f))
                 .request(Exchange.class);
 
         Collection<?> retrieved = exchange.getIn().getBody(Collection.class);
@@ -105,14 +173,137 @@ public class QdrantResource {
     public Response delete() {
 
         Exchange exchange = producer.to("qdrant:testCollection")
-                .withHeader(Qdrant.Headers.ACTION, QdrantAction.DELETE)
-                .withBody(ConditionFactory.matchKeyword("foo", "hello"))
+                .withHeader(QdrantHeaders.ACTION, QdrantAction.DELETE)
+                .withBody(Common.Filter.newBuilder()
+                        .addMust(matchKeyword("foo", "hello"))
+                        .build())
                 .request(Exchange.class);
 
-        Object operationId = exchange.getIn().getHeader(Qdrant.Headers.OPERATION_ID);
-        Object opeartionStatus = exchange.getIn().getHeader(Qdrant.Headers.OPERATION_STATUS);
-        Object operationValue = exchange.getIn().getHeader(Qdrant.Headers.OPERATION_STATUS_VALUE);
+        Object operationId = exchange.getIn().getHeader(QdrantHeaders.OPERATION_ID);
+        Object opeartionStatus = exchange.getIn().getHeader(QdrantHeaders.OPERATION_STATUS);
+        Object operationValue = exchange.getIn().getHeader(QdrantHeaders.OPERATION_STATUS_VALUE);
 
         return Response.ok(operationId + "/" + opeartionStatus + "/" + operationValue).build();
+    }
+
+    @Path("/exception/nonExistentCollection")
+    @GET
+    @Produces(MediaType.TEXT_PLAIN)
+    public Response retrieveFromNonExistentCollection() {
+        // Try to retrieve from a collection that doesn't exist
+        // This should trigger QdrantException
+        Exchange exchange = producer.to("qdrant:nonExistentCollection")
+                .withHeader(QdrantHeaders.ACTION, QdrantAction.RETRIEVE)
+                .withBody(PointIdFactory.id(1))
+                .request(Exchange.class);
+
+        if (exchange.isFailed() && exchange.getException() != null) {
+            Exception exception = exchange.getException();
+            return Response.status(500)
+                    .entity("QdrantException: " + exception.getMessage())
+                    .build();
+        }
+        return Response.ok("Should not reach here").build();
+    }
+
+    @Path("/exception/invalidOperation")
+    @PUT
+    @Produces(MediaType.TEXT_PLAIN)
+    public Response invalidCollectionOperation() {
+        // Try to create collection with invalid parameters
+        // This should trigger QdrantException
+        Exchange exchange = producer.to("qdrant:testCollection")
+                .withHeader(QdrantHeaders.ACTION, QdrantAction.CREATE_COLLECTION)
+                .withBody(
+                        Collections.VectorParams.newBuilder()
+                                .setSize(0) // Invalid size
+                                .setDistance(Collections.Distance.Cosine).build())
+                .request(Exchange.class);
+
+        if (exchange.isFailed() && exchange.getException() != null) {
+            Exception exception = exchange.getException();
+            return Response.status(500)
+                    .entity("QdrantException: " + exception.getMessage())
+                    .build();
+        }
+        return Response.ok("Should not reach here").build();
+    }
+
+    @Path("/exception/withMessage")
+    @GET
+    @Produces(MediaType.TEXT_PLAIN)
+    public Response exceptionWithMessage() {
+        // Verify that exception messages are properly preserved
+        Exchange exchange = producer.to("qdrant:nonExistentTestCollection")
+                .withHeader(QdrantHeaders.ACTION, QdrantAction.DELETE)
+                .withBody(Common.Filter.newBuilder()
+                        .addMust(matchKeyword("test", "value"))
+                        .build())
+                .request(Exchange.class);
+
+        if (exchange.isFailed() && exchange.getException() != null) {
+            Exception exception = exchange.getException();
+            return Response.status(500)
+                    .entity("QdrantException: Test exception message - " + exception.getMessage())
+                    .build();
+        }
+        return Response.ok("Should not reach here").build();
+    }
+
+    @Path("/apiKey/valid")
+    @PUT
+    @Produces(MediaType.TEXT_PLAIN)
+    public Response testWithValidApiKey() {
+        // The component is already configured with correct API key in QdrantAuthTestResource
+        producer.to("qdrant:authTestCollection")
+                .withHeader(QdrantHeaders.ACTION, QdrantAction.CREATE_COLLECTION)
+                .withBody(
+                        Collections.VectorParams.newBuilder()
+                                .setSize(2)
+                                .setDistance(Collections.Distance.Cosine).build())
+                .request();
+
+        return Response.ok("ApiKeyCredentials reflection works: authentication successful").build();
+    }
+
+    @Path("/apiKey/invalid")
+    @PUT
+    @Produces(MediaType.TEXT_PLAIN)
+    public Response testWithInvalidApiKey() {
+        // Test that wrong API key is rejected
+        // Use endpoint URI with explicit wrong API key to override component configuration
+        try {
+            producer.to("qdrant:authTestCollection2?apiKey=wrong-api-key")
+                    .withHeader(QdrantHeaders.ACTION, QdrantAction.CREATE_COLLECTION)
+                    .withBody(
+                            Collections.VectorParams.newBuilder()
+                                    .setSize(2)
+                                    .setDistance(Collections.Distance.Cosine).build())
+                    .request();
+
+            return Response.status(500)
+                    .entity("Authentication should have failed but succeeded!")
+                    .build();
+        } catch (Exception e) {
+            // Expected to fail on authentication
+            if (exceptionChainContains(e, "UNAUTHENTICATED") || exceptionChainContains(e, "PERMISSION_DENIED")) {
+                return Response.status(403).entity("Authentication correctly failed").build();
+            }
+            return Response.status(500)
+                    .entity("Unexpected error: " + e.getMessage())
+                    .build();
+        }
+    }
+
+    private boolean exceptionChainContains(Throwable e, String searchTerm) {
+        Throwable current = e;
+        while (current != null) {
+            String message = current.getMessage();
+            if (message != null && message.toLowerCase().contains(searchTerm.toLowerCase())) {
+                return true;
+            }
+            current = current.getCause();
+        }
+        return false;
     }
 }

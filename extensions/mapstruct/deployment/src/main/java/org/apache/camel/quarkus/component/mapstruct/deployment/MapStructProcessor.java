@@ -17,7 +17,6 @@
 package org.apache.camel.quarkus.component.mapstruct.deployment;
 
 import java.lang.reflect.Modifier;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -93,7 +92,7 @@ class MapStructProcessor {
 
         if (mapperPackageName.isPresent()) {
             String packages = StringUtils.deleteWhitespace(mapperPackageName.get());
-            mapperPackages.addAll(Arrays.asList(packages.split(",")));
+            mapperPackages.addAll(List.of(packages.split(",")));
         } else {
             // Fallback on auto discovery
             combinedIndex.getIndex()
@@ -145,7 +144,7 @@ class MapStructProcessor {
                 .map(AnnotationTarget::asClass)
                 .filter(classInfo -> packages.contains(classInfo.name().packagePrefix()))
                 .filter(classInfo -> classInfo.isInterface() || Modifier.isAbstract(classInfo.flags()))
-                .flatMap(classInfo -> Stream.concat(index.getAllKnownImplementors(classInfo.name()).stream(),
+                .flatMap(classInfo -> Stream.concat(index.getAllKnownImplementations(classInfo.name()).stream(),
                         index.getAllKnownSubclasses(classInfo.name()).stream()))
                 .forEach(classInfo -> {
                     AtomicReference<RuntimeValue<?>> mapperRuntimeValue = new AtomicReference<>();

@@ -47,16 +47,8 @@ This extension adds https://jolokia.org/[Jolokia] support to your application.
 In prod mode, Jolokia is accessible at the following URLs.
 
 * http://0.0.0.0:8778/jolokia/
-* http://0.0.0.0:8080/q/jolokia
 
 In dev and test modes Jolokia is bound only to `localhost`.
-
-To disable exposing Jolokia via the Quarkus management interface at `/q/jolokia`, add the following configuration to `application.properties`.
-
-[source]
-----
-quarkus.camel.jolokia.register-management-endpoint=false
-----
 
 If you want to disable Jolokia entirely, then add the following configuration to `application.properties`.
 
@@ -196,17 +188,6 @@ The context path that the Jolokia agent is deployed under.
 | `string`
 | `jolokia`
 
-a|icon:lock[title=Fixed at build time] [[quarkus-camel-jolokia-register-management-endpoint]]`link:#quarkus-camel-jolokia-register-management-endpoint[quarkus.camel.jolokia.register-management-endpoint]`
-
-Whether to register a Quarkus management endpoint for Jolokia (default `/q/jolokia`).
-When enabled this activates a management endpoint which will be accessible on a path relative to
-`${quarkus.http.non-application-root-path}/${quarkus.camel.jolokia.server.path}`.
-If the management interface is enabled, the value will be resolved as a path relative to
-`${quarkus.management.root-path}/${quarkus.camel.jolokia.server.path}`. Note that for this feature to work you must
-have `quarkus-vertx-http` on the application classpath.
-| `boolean`
-| `true`
-
 a|icon:lock[title=Fixed at build time] [[quarkus-camel-jolokia-camel-restrictor-allowed-mbean-domains]]`link:#quarkus-camel-jolokia-camel-restrictor-allowed-mbean-domains[quarkus.camel.jolokia.camel-restrictor-allowed-mbean-domains]`
 
 Comma separated list of allowed MBean domains used by `CamelJolokiaRestrictor`.
@@ -215,7 +196,7 @@ Comma separated list of allowed MBean domains used by `CamelJolokiaRestrictor`.
 
 a|icon:lock[title=Fixed at build time] [[quarkus-camel-jolokia-kubernetes-expose-container-port]]`link:#quarkus-camel-jolokia-kubernetes-expose-container-port[quarkus.camel.jolokia.kubernetes.expose-container-port]`
 
-When {@code true} and the quarkus-kubernetes extension is present, a container port named jolokia will
+When `true` and the quarkus-kubernetes extension is present, a container port named jolokia will
 be added to the generated Kubernetes manifests within the container spec ports definition.
 | `boolean`
 | `true`
@@ -230,7 +211,7 @@ This can be done via `@Inject CamelQuarkusJolokiaServer` and then invoking the `
 
 a| [[quarkus-camel-jolokia-server-host]]`link:#quarkus-camel-jolokia-server-host[quarkus.camel.jolokia.server.host]`
 
-The host address to which the Jolokia agent HTTP server should bind to.
+The host address to which the Jolokia agent HTTP server should bind.
 When unspecified, the default is localhost for dev and test mode.
 In prod mode the default is to bind to all interfaces at 0.0.0.0.
 | `string`
@@ -238,7 +219,7 @@ In prod mode the default is to bind to all interfaces at 0.0.0.0.
 
 a| [[quarkus-camel-jolokia-server-port]]`link:#quarkus-camel-jolokia-server-port[quarkus.camel.jolokia.server.port]`
 
-The port on which the Jolokia agent HTTP server should listen on.
+The port on which the Jolokia agent HTTP server should listen.
 | `int`
 | `8778`
 

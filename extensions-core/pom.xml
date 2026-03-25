@@ -23,7 +23,7 @@
     <parent>
         <groupId>org.apache.camel.quarkus</groupId>
         <artifactId>camel-quarkus-build-parent</artifactId>
-        <version>3.23.0-SNAPSHOT</version>
+        <version>3.35.0-SNAPSHOT</version>
         <relativePath>../poms/build-parent/pom.xml</relativePath>
     </parent>
 
@@ -84,6 +84,13 @@
                                     <goal>update-extension-doc-page</goal>
                                 </goals>
                                 <phase>process-classes</phase>
+                                <configuration>
+                                    <componentLinkOverrides>
+                                        <xml-io-dsl>
+                                            <name>java-xml-io-dsl</name>
+                                        </xml-io-dsl>
+                                    </componentLinkOverrides>
+                                </configuration>
                             </execution>
                         </executions>
                     </plugin>

@@ -29,5 +29,6 @@ metadata:
   guide: "https://camel.apache.org/camel-quarkus/latest/reference/extensions/grpc.html"
   categories:
   - "integration"
-  status:
-  - "stable"
+  config:
+  - "quarkus.camel.grpc"
+  status: "stable"

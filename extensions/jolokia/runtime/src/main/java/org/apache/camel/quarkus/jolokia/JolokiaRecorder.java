@@ -17,35 +17,28 @@
 package org.apache.camel.quarkus.jolokia;
 
 import java.io.IOException;
-import java.net.InetAddress;
-import java.net.URI;
-import java.net.UnknownHostException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
-import java.util.function.Consumer;
 
 import io.quarkus.runtime.LaunchMode;
 import io.quarkus.runtime.RuntimeValue;
 import io.quarkus.runtime.ShutdownContext;
 import io.quarkus.runtime.annotations.Recorder;
-import io.vertx.core.Handler;
-import io.vertx.ext.web.Route;
-import io.vertx.ext.web.RoutingContext;
+import org.apache.camel.quarkus.jolokia.config.JolokiaBuildTimeConfig;
 import org.apache.camel.quarkus.jolokia.config.JolokiaRuntimeConfig;
 import org.apache.camel.quarkus.jolokia.config.JolokiaRuntimeConfig.DiscoveryEnabledMode;
 import org.apache.camel.quarkus.jolokia.config.JolokiaRuntimeConfig.Kubernetes;
 import org.apache.camel.quarkus.jolokia.config.JolokiaRuntimeConfig.Server;
 import org.apache.camel.quarkus.jolokia.restrictor.CamelJolokiaRestrictor;
 import org.apache.camel.util.CollectionHelper;
-import org.apache.camel.util.HostUtils;
 import org.apache.camel.util.ObjectHelper;
 import org.eclipse.microprofile.config.ConfigProvider;
 import org.jboss.logging.Logger;
+import org.jolokia.core.api.LogHandler;
 import org.jolokia.jvmagent.JolokiaServer;
 import org.jolokia.jvmagent.JolokiaServerConfig;
 import org.jolokia.server.core.config.ConfigKey;
-import org.jolokia.server.core.service.api.LogHandler;
 
 import static io.smallrye.common.os.Linux.isWSL;
 
@@ -53,29 +46,25 @@ import static io.smallrye.common.os.Linux.isWSL;
 public class JolokiaRecorder {
     private static final String ALL_INTERFACES = "0.0.0.0";
     private static final String LOCALHOST = "localhost";
-    private static final Logger LOG = Logger.getLogger(JolokiaRequestRedirectHandler.class);
+    private static final Logger LOG = Logger.getLogger(JolokiaRecorder.class);
 
-    public Consumer<Route> route(Handler<RoutingContext> bodyHandler) {
-        return new Consumer<Route>() {
-            @Override
-            public void accept(Route route) {
-                route.handler(bodyHandler).produces("application/json");
-            }
-        };
+    private final JolokiaBuildTimeConfig buildTimeConfig;
+    private final RuntimeValue<JolokiaRuntimeConfig> runtimeConfig;
+
+    public JolokiaRecorder(JolokiaBuildTimeConfig buildTimeConfig, RuntimeValue<JolokiaRuntimeConfig> runtimeConfig) {
+        this.buildTimeConfig = buildTimeConfig;
+        this.runtimeConfig = runtimeConfig;
     }
 
-    public RuntimeValue<JolokiaServerConfig> createJolokiaServerConfig(
-            JolokiaRuntimeConfig runtimeConfig,
-            String endpointPath,
-            String applicationName) {
+    public RuntimeValue<JolokiaServerConfig> createJolokiaServerConfig(String applicationName) {
 
-        Server server = runtimeConfig.server();
-        Kubernetes kubernetes = runtimeConfig.kubernetes();
+        Server server = runtimeConfig.getValue().server();
+        Kubernetes kubernetes = runtimeConfig.getValue().kubernetes();
 
         // Configure Jolokia HTTP server host, port & context path
-        String host = runtimeConfig.server().host().orElse(null);
+        String host = runtimeConfig.getValue().server().host().orElse(null);
         if (ObjectHelper.isEmpty(host)) {
-            if (LaunchMode.isRemoteDev()) {
+            if (LaunchMode.current().isRemoteDev()) {
                 host = ALL_INTERFACES;
             } else if (LaunchMode.current().isDevOrTest()) {
                 if (!isWSL()) {
@@ -91,7 +80,7 @@ public class JolokiaRecorder {
         Map<String, String> serverOptions = new HashMap<>();
         serverOptions.put("host", host);
         serverOptions.put("port", String.valueOf(server.port()));
-        serverOptions.put(ConfigKey.AGENT_CONTEXT.getKeyValue(), "/" + endpointPath);
+        serverOptions.put(ConfigKey.AGENT_CONTEXT.getKeyValue(), "/" + buildTimeConfig.path());
 
         // Attempt Kubernetes configuration
         Optional<String> kubernetesServiceHost = ConfigProvider.getConfig().getOptionalValue("kubernetes.service.host",
@@ -112,10 +101,10 @@ public class JolokiaRecorder {
 
         // Merge configuration with any arbitrary values provided via quarkus.camel.jolokia.additional-properties
         Map<String, String> combinedOptions = CollectionHelper.mergeMaps(serverOptions,
-                runtimeConfig.additionalProperties());
+                runtimeConfig.getValue().additionalProperties());
 
         // Configure CamelJolokiaRestrictor if an existing restrictor is not already provided
-        if (runtimeConfig.registerCamelRestrictor()) {
+        if (runtimeConfig.getValue().registerCamelRestrictor()) {
             combinedOptions.putIfAbsent(ConfigKey.RESTRICTOR_CLASS.getKeyValue(), CamelJolokiaRestrictor.class.getName());
         }
 
@@ -149,8 +138,8 @@ public class JolokiaRecorder {
         }
     }
 
-    public void startJolokiaServer(RuntimeValue<JolokiaServer> jolokiaServer, JolokiaRuntimeConfig config) {
-        if (config.server().autoStart()) {
+    public void startJolokiaServer(RuntimeValue<JolokiaServer> jolokiaServer) {
+        if (runtimeConfig.getValue().server().autoStart()) {
             jolokiaServer.getValue().start();
         }
     }
@@ -171,33 +160,5 @@ public class JolokiaRecorder {
         CamelQuarkusJolokiaAgent(JolokiaServerConfig config, LogHandler logHandler) throws IOException {
             super(config, logHandler);
         }
-    }
-
-    public Handler<RoutingContext> getHandler(RuntimeValue<JolokiaServerConfig> config, String jolokiaEndpointPath) {
-        JolokiaServerConfig serverConfig = config.getValue();
-        String host = resolveHost(serverConfig.getAddress());
-        URI uri = URI.create("%s://%s:%d%s".formatted(serverConfig.getProtocol(), host, serverConfig.getPort(),
-                serverConfig.getContextPath()));
-        return new JolokiaRequestRedirectHandler(uri.normalize(), jolokiaEndpointPath);
-    }
-
-    static String resolveHost(InetAddress address) {
-        String host;
-        if (address == null) {
-            try {
-                host = HostUtils.getLocalHostName();
-            } catch (UnknownHostException e) {
-                throw new IllegalStateException("Unable to determine the Jolokia host", e);
-            }
-        } else {
-            host = address.getHostName();
-        }
-
-        // ipv6 address
-        if (host.contains(":")) {
-            host = "[%s]".formatted(host);
-        }
-
-        return host;
     }
 }

@@ -28,11 +28,10 @@ import jakarta.ws.rs.core.MediaType;
 import org.apache.camel.ServiceStatus;
 import org.apache.camel.quarkus.core.DisabledModelToXMLDumper;
 import org.apache.camel.quarkus.core.RegistryRoutesLoaders;
-import org.apache.camel.quarkus.it.support.mainlistener.CustomMainListener;
+import org.apache.camel.quarkus.test.DisabledOnQuarkusPlatform;
 import org.apache.camel.reactive.vertx.VertXReactiveExecutor;
 import org.apache.camel.reactive.vertx.VertXThreadPoolFactory;
 import org.apache.camel.support.DefaultLRUCacheFactory;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import static org.apache.camel.quarkus.test.Conditions.doesNotStartWith;
@@ -40,13 +39,14 @@ import static org.apache.camel.quarkus.test.Conditions.entry;
 import static org.apache.camel.quarkus.test.Conditions.startsWith;
 import static org.apache.camel.util.CollectionHelper.mapOf;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
 @QuarkusTest
 public class CoreMainTest {
-    @Disabled
+
     @Test
     public void testProperties() {
         RestAssured.when().get("/test/property/camel.context.name").then().body(is("quarkus-camel-example"));
@@ -82,13 +82,11 @@ public class CoreMainTest {
         assertThat(p.getString("routes-collector.type")).isEqualTo(CamelMainRoutesCollector.class.getName());
         assertThat(p.getString("routes-collector.type-registry")).isEqualTo(RegistryRoutesLoaders.Default.class.getName());
 
-        assertThat(p.getList("listeners", String.class))
-                .containsAnyOf(CamelMainEventBridge.class.getName(), CustomMainListener.class.getName());
         assertThat(p.getList("routeBuilders", String.class))
                 .contains(CamelRoute.class.getName())
                 .doesNotContain(CamelRouteFiltered.class.getName());
         assertThat(p.getList("routes", String.class))
-                .contains("keep-alive", "configure", "beforeStart", "produced", "endpointdsl", "lambdaEndpointRoute")
+                .contains("keep-alive", "produced", "endpointdsl", "lambdaEndpointRoute")
                 .doesNotContain("filtered");
 
         assertThat(p.getString("lru-cache-factory")).isEqualTo(DefaultLRUCacheFactory.class.getName());
@@ -225,4 +223,16 @@ public class CoreMainTest {
                 .statusCode(200)
                 .body(is("true"));
     }
+
+    // Avoid running in the Quarkus Platform where there are no .java source files
+    @DisabledOnQuarkusPlatform
+    @Test
+    public void routeSourceResource() {
+        RestAssured.given()
+                .get("/test/context/route/source/resource")
+                .then()
+                .statusCode(200)
+                .body(containsString("public class " + CamelCdiBeanRoute.class.getSimpleName()));
+    }
+
 }

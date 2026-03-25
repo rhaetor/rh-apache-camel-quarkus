@@ -16,14 +16,55 @@
  */
 package org.apache.camel.quarkus.component.opentelemetry2.it;
 
+import org.apache.camel.Exchange;
+import org.apache.camel.Processor;
 import org.apache.camel.builder.RouteBuilder;
 
 public class OpenTelemetry2RouteBuilder extends RouteBuilder {
 
     @Override
     public void configure() throws Exception {
+        from("platform-http:/opentelemetry2/test/trace?httpMethodRestrict=GET")
+                .setHeader(Exchange.HTTP_RESPONSE_CODE, constant(200))
+                .setBody(constant("GET: /opentelemetry2/test/trace"));
+
+        from("platform-http:/opentelemetry2/test/trace/filtered")
+                .setBody(constant("GET: /opentelemetry2/test/trace/filtered"));
+
         from("direct:start")
-                .setBody().constant("Traced direct:start")
-                .to("log:info");
+                .setBody().constant("Traced direct:start");
+
+        from("direct:greet")
+                .to("bean:greetingsBean");
+
+        from("timer:filtered?repeatCount=5&delay=-1")
+                .setBody().constant("Route filtered from tracing").id("timer-setbody");
+
+        from("direct:jdbcQuery")
+                .to("bean:jdbcQueryBean");
+
+        from("direct:traceHeaderInclusion")
+                .log("Trace info: CAMEL_SPAN_ID=${header.CAMEL_SPAN_ID}, CAMEL_TRACE_ID=${header.CAMEL_TRACE_ID}");
+
+        from("platform-http:/greeting")
+                .log("Received /greeting request for component ${header.httpComponent}")
+                .process(new Processor() {
+                    @Override
+                    public void process(Exchange exchange) {
+                        String baseUrl = "http://localhost";
+                        String httpComponent = exchange.getMessage().getHeader("httpComponent", String.class);
+                        if (httpComponent.equals("http")) {
+                            exchange.setVariable("httpUriPrefix", baseUrl);
+                        } else {
+                            exchange.setVariable("httpUriPrefix", httpComponent + ":" + baseUrl);
+                        }
+                    }
+                })
+                .removeHeaders("*")
+                .toD("${variable.httpUriPrefix}:{{quarkus.http.test-port}}/greeting-provider");
+
+        from("platform-http:/greeting-provider")
+                .log("Received at greeting-provider: ${body}")
+                .setBody(constant("Hello From Camel Quarkus!"));
     }
 }

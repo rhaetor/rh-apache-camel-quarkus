@@ -23,15 +23,19 @@ import org.apache.camel.support.cluster.RebalancingCamelClusterService;
 
 @Recorder
 public class KubernetesClusterServiceRecorder {
+    private final RuntimeValue<KubernetesClusterServiceRuntimeConfig> runtimeConfig;
 
-    public RuntimeValue<KubernetesClusterService> createKubernetesClusterService(KubernetesClusterServiceRuntimeConfig config) {
-        KubernetesClusterService kcs = setupKubernetesClusterServiceFromConfig(config);
+    public KubernetesClusterServiceRecorder(RuntimeValue<KubernetesClusterServiceRuntimeConfig> runtimeConfig) {
+        this.runtimeConfig = runtimeConfig;
+    }
+
+    public RuntimeValue<KubernetesClusterService> createKubernetesClusterService() {
+        KubernetesClusterService kcs = setupKubernetesClusterServiceFromConfig(runtimeConfig.getValue());
         return new RuntimeValue<>(kcs);
     }
 
-    public RuntimeValue<RebalancingCamelClusterService> createKubernetesRebalancingClusterService(
-            KubernetesClusterServiceRuntimeConfig config) {
-        KubernetesClusterService kcs = setupKubernetesClusterServiceFromConfig(config);
+    public RuntimeValue<RebalancingCamelClusterService> createKubernetesRebalancingClusterService() {
+        KubernetesClusterService kcs = setupKubernetesClusterServiceFromConfig(runtimeConfig.getValue());
         RebalancingCamelClusterService rebalancingService = new RebalancingCamelClusterService(kcs,
                 kcs.getRenewDeadlineMillis());
         return new RuntimeValue<>(rebalancingService);
@@ -42,8 +46,8 @@ public class KubernetesClusterServiceRecorder {
 
         config.id().ifPresent(clusterService::setId);
         config.masterUrl().ifPresent(clusterService::setMasterUrl);
-        config.connectionTimeoutMillis().ifPresent(clusterService::setConnectionTimeoutMillis);
-        config.namespace().ifPresent(clusterService::setKubernetesNamespace);
+        config.connectionTimeoutMillis().ifPresent(clusterService::setConnectionTimeout);
+        config.namespace().ifPresent(clusterService::setNamespace);
         config.podName().ifPresent(clusterService::setPodName);
         config.jitterFactor().ifPresent(clusterService::setJitterFactor);
         config.leaseDurationMillis().ifPresent(clusterService::setLeaseDurationMillis);

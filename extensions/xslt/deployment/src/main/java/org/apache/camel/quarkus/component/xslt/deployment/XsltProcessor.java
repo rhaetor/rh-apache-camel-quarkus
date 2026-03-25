@@ -20,7 +20,6 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -47,7 +46,7 @@ import org.apache.camel.quarkus.core.deployment.spi.CamelBeanBuildItem;
 import org.apache.camel.quarkus.core.deployment.spi.CamelServiceFilter;
 import org.apache.camel.quarkus.core.deployment.spi.CamelServiceFilterBuildItem;
 import org.apache.camel.quarkus.support.xalan.XalanTransformerFactory;
-import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 
 class XsltProcessor {
     /*
@@ -91,7 +90,7 @@ class XsltProcessor {
         final Set<String> translets = new LinkedHashSet<>();
         try {
             final BuildTimeUriResolver resolver = new BuildTimeUriResolver();
-            for (String uri : config.sources().orElse(Collections.emptyList())) {
+            for (String uri : config.sources().orElse(List.of())) {
                 ResolutionResult resolvedUri = resolver.resolve(uri);
                 uriResolverEntries.produce(resolvedUri.toBuildItem());
 
@@ -128,7 +127,7 @@ class XsltProcessor {
                         .forEach(path -> {
                             try {
                                 final Path rel = destination.relativize(path);
-                                final String fqcn = StringUtils.removeEnd(rel.toString(), ".class").replace(File.separatorChar,
+                                final String fqcn = Strings.CI.removeEnd(rel.toString(), ".class").replace(File.separatorChar,
                                         '.');
                                 final byte[] data = Files.readAllBytes(path);
 

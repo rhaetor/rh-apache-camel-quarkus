@@ -16,8 +16,6 @@
  */
 package org.apache.camel.quarkus.component.langchain.chat.deployment;
 
-import io.quarkiverse.langchain4j.deployment.RequestChatModelBeanBuildItem;
-import io.quarkiverse.langchain4j.runtime.NamedConfigUtil;
 import io.quarkus.deployment.annotations.BuildStep;
 import io.quarkus.deployment.builditem.FeatureBuildItem;
 
@@ -27,11 +25,5 @@ class LangChain4jChatProcessor {
     @BuildStep
     FeatureBuildItem feature() {
         return new FeatureBuildItem(FEATURE);
-    }
-
-    @BuildStep
-    RequestChatModelBeanBuildItem defaultChatModelBean() {
-        // Avoid the need for an injection point so that the chat model can be autowired easily
-        return new RequestChatModelBeanBuildItem(NamedConfigUtil.DEFAULT_NAME);
     }
 }

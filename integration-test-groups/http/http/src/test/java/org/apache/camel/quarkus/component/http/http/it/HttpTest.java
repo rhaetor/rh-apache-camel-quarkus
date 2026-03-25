@@ -16,6 +16,8 @@
  */
 package org.apache.camel.quarkus.component.http.http.it;
 
+import java.util.stream.Stream;
+
 import io.quarkus.test.common.QuarkusTestResource;
 import io.quarkus.test.junit.QuarkusTest;
 import io.restassured.RestAssured;
@@ -25,11 +27,18 @@ import io.smallrye.certs.junit5.Certificate;
 import org.apache.camel.quarkus.component.http.common.AbstractHttpTest;
 import org.apache.camel.quarkus.component.http.common.HttpTestResource;
 import org.apache.camel.quarkus.test.support.certificate.TestCertificates;
+import org.eclipse.microprofile.config.ConfigProvider;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 @TestCertificates(certificates = {
         @Certificate(name = HttpTestResource.KEYSTORE_NAME, formats = {
@@ -89,6 +98,44 @@ public class HttpTest extends AbstractHttpTest {
                 .then()
                 .statusCode(200)
                 .body(is("Compressed response"));
+    }
+
+    @ParameterizedTest
+    @MethodSource("proxyProviders")
+    void testNonProxyRouting(String nonProxyHosts, int proxyPort, String proxyHost, int status, String expectedBody,
+            boolean proxyShouldBeInvoked) {
+        int before = getProxyInvocations();
+        var response = RestAssured.given()
+                .queryParam("non-proxy-hosts", nonProxyHosts)
+                .queryParam("proxy-port", proxyPort)
+                .queryParam("proxy-host", proxyHost)
+                .when()
+                .get("/test/client/{component}/nonProxy", component())
+                .then()
+                .statusCode(status);
+
+        response.body("metadata.groupId", is(expectedBody));
+
+        int after = getProxyInvocations();
+
+        if (proxyShouldBeInvoked) {
+            assertTrue(after > before, "Proxy count should have increased. Before: " + before + ", after: " + after);
+        } else {
+            assertEquals(after, before, "Proxy invocation count should be the same.");
+        }
+    }
+
+    static Stream<Arguments> proxyProviders() {
+        var config = ConfigProvider.getConfig();
+        String host = config.getValue("proxy.host", String.class);
+        int actualPort = config.getValue("proxy.port", Integer.class);
+        int fakePort = RestAssured.port;
+        String expectedGroupId = "org.apache.camel.quarkus";
+
+        return Stream.of(
+                arguments("repo.maven.apache.org", actualPort, host, 200, expectedGroupId, false),
+                arguments("*.apache.org", fakePort, host, 200, expectedGroupId, false),
+                arguments("*localhost*", actualPort, host, 200, expectedGroupId, true));
     }
 
 }

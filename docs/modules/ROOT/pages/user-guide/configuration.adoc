@@ -2,7 +2,7 @@
 :page-aliases: user-guide/bootstrap.adoc
 
 Camel Quarkus automatically configures and deploys a Camel Context bean which by default is started/stopped according to
-the Quarkus Application lifecycle. The configuration step happens at build time during Quarkus' augmentation phase and
+the Quarkus Application lifecycle. The configuration step happens at build time during Quarkus' augmentation phase, and
 it is driven by the Camel Quarkus extensions which can be tuned using Camel Quarkus specific `quarkus.camel.*`
 properties.
 
@@ -128,6 +128,15 @@ In case autowiring is performed for some component option, you should see a simi
 ----
 Autowired property: exchangeFormatter on component: log as exactly one instance of type: software.amazon.org.apache.camel.spi.ExchangeFormatter (org.apache.camel.support.processor.DefaultExchangeFormatter) found in the registry
 ----
+
+=== Default beans and Camel component autowiring
+
+Quarkus has the concept of https://quarkus.io/guides/cdi-reference#default_beans[Default beans].
+Many Quarkus extensions produce CDI beans for types that can be autowired into Camel components.
+Default beans always take priority for Camel component autowiring, when there are multiple beans for the same target type.
+
+For example, Quarkus JDBC driver and Hibernate ORM extensions allow you to configure applications with both 'default' and 'named' configurations.
+Without explicitly specifying which `DataSource` or `EntityManagerFactory` you want to work with via endpoint URI options, the default bean for those types will take priority for autowiring.
 
 == What's next?
 

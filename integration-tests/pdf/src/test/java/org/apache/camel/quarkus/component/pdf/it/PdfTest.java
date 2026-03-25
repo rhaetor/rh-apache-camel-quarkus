@@ -17,11 +17,15 @@
 package org.apache.camel.quarkus.component.pdf.it;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 import io.quarkus.test.junit.QuarkusTest;
-import io.quarkus.utilities.OS;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
+import io.smallrye.common.os.OS;
+import org.apache.commons.io.FileUtils;
 import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.encryption.InvalidPasswordException;
@@ -42,7 +46,7 @@ class PdfTest {
     @BeforeEach
     public void beforeEach() {
         // Disable tests on GitHub Actions Windows runners. Font cache building is too slow and restoring saved caches is too unreliable
-        Assumptions.assumeFalse(OS.determineOS().equals(OS.WINDOWS) && "true".equals(System.getenv("CI")));
+        Assumptions.assumeFalse(OS.current().equals(OS.WINDOWS) && "true".equals(System.getenv("CI")));
     }
 
     @Order(1)
@@ -82,6 +86,59 @@ class PdfTest {
 
         assertTrue(pdfText.contains("content to be included in the created pdf document"));
         assertTrue(pdfText.contains("another line that should be appended"));
+    }
+
+    @Test
+    public void merge() throws IOException {
+        byte[] bytesFirstPDF = RestAssured.given().contentType(ContentType.TEXT)
+                .body("first content").post("/pdf/createFromText").then().statusCode(201)
+                .extract().asByteArray();
+        Path firstPdfPath = Files.createTempFile("firstPdf", ".pdf");
+        Files.write(firstPdfPath, bytesFirstPDF);
+        byte[] bytesSecondPDF = RestAssured.given().contentType(ContentType.TEXT)
+                .body("second content").post("/pdf/createFromText").then().statusCode(201)
+                .extract().asByteArray();
+        Path secondPdfPath = Files.createTempFile("secondPdf", ".pdf");
+        Files.write(secondPdfPath, bytesSecondPDF);
+
+        byte[] bytesMergedPDF = RestAssured.given()
+                .queryParam("firstPdf", firstPdfPath.toString())
+                .queryParam("secondPdf", secondPdfPath.toString())
+                .post("/pdf/merge").then().statusCode(201)
+                .extract().asByteArray();
+
+        PDDocument doc = Loader.loadPDF(bytesMergedPDF);
+        PDFTextStripper pdfTextStripper = new PDFTextStripper();
+        String text = pdfTextStripper.getText(doc);
+        assertEquals(2, doc.getNumberOfPages());
+        assertTrue(text.contains("first content\nsecond content"));
+
+        doc.close();
+    }
+
+    @Test
+    public void mergeWithComplexPdf() throws IOException {
+        InputStream pageLabelPdfStream = PdfTest.class.getResourceAsStream("/test_pagelabels.pdf");
+        Path firstPdfPath = Files.createTempFile("firstPdf", ".pdf");
+        FileUtils.copyInputStreamToFile(pageLabelPdfStream, firstPdfPath.toFile());
+
+        InputStream complexPdfStream = PdfTest.class.getResourceAsStream(
+                "/pdf-with-several-different-contents.pdf");
+        Path secondPdfPath = Files.createTempFile("secondPdf", ".pdf");
+        FileUtils.copyInputStreamToFile(complexPdfStream, secondPdfPath.toFile());
+        byte[] bytesMergedPDF = RestAssured.given()
+                .queryParam("firstPdf", firstPdfPath.toString())
+                .queryParam("secondPdf", secondPdfPath.toString())
+                .post("/pdf/merge").then().statusCode(201)
+                .extract().asByteArray();
+
+        PDDocument doc = Loader.loadPDF(bytesMergedPDF);
+        PDFTextStripper pdfTextStripper = new PDFTextStripper();
+        String text = pdfTextStripper.getText(doc);
+        assertEquals(15, doc.getNumberOfPages());
+        assertTrue(text.contains("A shape"));
+
+        doc.close();
     }
 
     @Test

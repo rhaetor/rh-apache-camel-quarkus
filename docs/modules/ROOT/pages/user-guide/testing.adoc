@@ -64,7 +64,7 @@ An important consequence of this, is that all communication between the tests an
 must take one or more of the following forms:
 
 * Network calls. Typically, HTTP or any other network protocol your application supports.
-* Watching the filesystem for changes (E.g via Camel `file` endpoints).
+* Watching the filesystem for changes (E.g. via Camel `file` endpoints).
 * Any other kind of interprocess communication.
 
 `QuarkusIntegrationTest` also provides some additional features that are not available through `@QuarkusTest`.
@@ -230,13 +230,13 @@ The original `CamelTestSupport` class is not well suited to Quarkus, so there's 
 
 > IMPORTANT: `CamelQuarkusTestSupport` only works in JVM mode. If you need to test in native mode, then use one of the alternate test strategies described above.
 
-To use `CamelQuarkusTestSupport`, you must add `camel-quarkus-junit5` as a test scoped dependency to your application.
+To use `CamelQuarkusTestSupport`, you must add `camel-quarkus-junit` as a test scoped dependency to your application.
 
 [source,xml]
 ----
 <dependency>
     <groupId>org.apache.camel.quarkus</groupId>
-    <artifactId>camel-quarkus-junit5</artifactId>
+    <artifactId>camel-quarkus-junit</artifactId>
     <scope>test</scope>
 </dependency>
 ----

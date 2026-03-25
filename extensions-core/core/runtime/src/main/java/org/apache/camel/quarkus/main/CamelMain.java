@@ -17,8 +17,6 @@
 package org.apache.camel.quarkus.main;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -26,15 +24,16 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import io.quarkus.runtime.Quarkus;
 import org.apache.camel.CamelContext;
 import org.apache.camel.ProducerTemplate;
+import org.apache.camel.RoutesBuilder;
 import org.apache.camel.main.MainCommandLineSupport;
 import org.apache.camel.main.MainConfigurationProperties;
-import org.apache.camel.main.MainListener;
 import org.apache.camel.main.MainShutdownStrategy;
-import org.apache.camel.main.RoutesConfigurer;
 import org.apache.camel.main.SimpleMainShutdownStrategy;
 import org.apache.camel.quarkus.core.CamelConfig.FailureRemedy;
 import org.apache.camel.spi.HasCamelContext;
-import org.apache.camel.support.PluginHelper;
+import org.apache.camel.spi.Resource;
+import org.apache.camel.spi.ResourceAware;
+import org.apache.camel.support.ResourceHelper;
 import org.apache.camel.support.service.ServiceHelper;
 import org.apache.camel.util.StringHelper;
 
@@ -46,24 +45,6 @@ public final class CamelMain extends MainCommandLineSupport implements HasCamelC
         this.camelContext = camelContext;
         this.engineStarted = new AtomicBoolean();
         this.failureRemedy = failureRemedy;
-    }
-
-    @Override
-    protected void configureRoutes(CamelContext camelContext) throws Exception {
-        // then configure and add the routes
-        RoutesConfigurer configurer = new RoutesConfigurer();
-
-        if (mainConfigurationProperties.isRoutesCollectorEnabled()) {
-            configurer.setRoutesCollector(routesCollector);
-        }
-
-        configurer.setBeanPostProcessor(PluginHelper.getBeanPostProcessor(camelContext));
-        configurer.setRoutesBuilders(mainConfigurationProperties.getRoutesBuilders());
-        configurer.setRoutesExcludePattern(mainConfigurationProperties.getRoutesExcludePattern());
-        configurer.setRoutesIncludePattern(mainConfigurationProperties.getRoutesIncludePattern());
-        configurer.setJavaRoutesExcludePattern(mainConfigurationProperties.getJavaRoutesExcludePattern());
-        configurer.setJavaRoutesIncludePattern(mainConfigurationProperties.getJavaRoutesIncludePattern());
-        configurer.configureRoutes(camelContext);
     }
 
     @Override
@@ -117,12 +98,23 @@ public final class CamelMain extends MainCommandLineSupport implements HasCamelC
         throw new IllegalStateException("Should not be invoked");
     }
 
-    public List<MainListener> getMainListeners() {
-        return Collections.unmodifiableList(listeners);
-    }
-
     public MainConfigurationProperties getMainConfigurationProperties() {
         return mainConfigurationProperties;
+    }
+
+    @Override
+    protected void configureRoutes(CamelContext camelContext) throws Exception {
+        if (camelContext.isSourceLocationEnabled()) {
+            for (RoutesBuilder route : getMainConfigurationProperties().getRoutesBuilders()) {
+                if (route instanceof ResourceAware ra && ra.getResource() == null) {
+                    Resource resource = ResourceHelper.resolveResource(camelContext, "source:" + route.getClass().getName());
+                    if (resource != null && resource.exists()) {
+                        ra.setResource(resource);
+                    }
+                }
+            }
+        }
+        super.configureRoutes(camelContext);
     }
 
     /**
@@ -152,7 +144,7 @@ public final class CamelMain extends MainCommandLineSupport implements HasCamelC
                     camelTemplate = null;
                 }
             } catch (Exception e) {
-                LOG.debug("Error stopping camelTemplate due " + e.getMessage() + ". This exception is ignored.", e);
+                LOG.debug("Error stopping camelTemplate due {}. This exception is ignored.", e.getMessage(), e);
             }
 
             beforeStop();
@@ -170,7 +162,7 @@ public final class CamelMain extends MainCommandLineSupport implements HasCamelC
 
     @Override
     public void parseArguments(String[] arguments) {
-        LinkedList<String> args = new LinkedList<>(Arrays.asList(arguments));
+        LinkedList<String> args = new LinkedList<>(List.of(arguments));
         List<String> unknownArgs = new ArrayList<>();
 
         boolean valid = true;
@@ -187,7 +179,7 @@ public final class CamelMain extends MainCommandLineSupport implements HasCamelC
             if (!handled && !failureRemedy.equals(FailureRemedy.ignore)) {
                 if (arg.length() >= 100) {
                     // For long arguments, clean up formatting for console output
-                    String truncatedArg = String.format("%s...", StringHelper.limitLength(arg, 97));
+                    String truncatedArg = "%s...".formatted(StringHelper.limitLength(arg, 97));
                     unknownArgs.add(truncatedArg);
                 } else {
                     unknownArgs.add(arg);

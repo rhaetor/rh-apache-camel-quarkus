@@ -25,7 +25,6 @@ import com.azure.messaging.eventhubs.EventHubClientBuilder;
 import com.azure.messaging.eventhubs.EventHubProducerClient;
 import io.restassured.RestAssured;
 import org.awaitility.Awaitility;
-import org.eclipse.microprofile.config.ConfigProvider;
 import org.hamcrest.CoreMatchers;
 import org.jboss.logging.Logger;
 import org.junit.jupiter.api.Test;
@@ -47,9 +46,10 @@ abstract class AbstractAzureKeyVaultContextReloadTest {
 
     @Test
     void contextReload() {
-        String secretName = ConfigProvider.getConfig().getValue("camel.vault.azure.secrets", String.class).replace(".*", "");
+        String secretName = RestAssured.get("/azure-key-vault/configProperty/camel.vault.azure.secrets")
+                .then()
+                .statusCode(200).extract().body().asString().replace(".*", "");
         String secretValue = "Hello Camel Quarkus Azure Key Vault From Refresh";
-        boolean reloadDetected = false;
         try {
             // Create secret
             RestAssured.given()
@@ -89,14 +89,13 @@ abstract class AbstractAzureKeyVaultContextReloadTest {
             }
 
             //await context reload
-            Awaitility.await().pollInterval(10, TimeUnit.SECONDS).atMost(2, TimeUnit.MINUTES).untilAsserted(
+            Awaitility.await().pollInterval(10, TimeUnit.SECONDS).atMost(5, TimeUnit.MINUTES).untilAsserted(
                     () -> {
                         RestAssured.get("/azure-key-vault/context/reload")
                                 .then()
                                 .statusCode(200)
                                 .body(CoreMatchers.is("true"));
                     });
-            reloadDetected = true;
         } finally {
             // meant to be commented.
             // during development, it may be handy to mark eventhub as completely read. (in case the test is not reading all the messages by itself)

@@ -19,7 +19,7 @@ package org.apache.camel.quarkus.component.ssh.deployment;
 import java.security.KeyFactory;
 import java.security.KeyPairGenerator;
 import java.security.Signature;
-import java.util.Arrays;
+import java.util.List;
 
 import javax.crypto.KeyAgreement;
 import javax.crypto.Mac;
@@ -32,6 +32,7 @@ import io.quarkus.deployment.builditem.IndexDependencyBuildItem;
 import io.quarkus.deployment.builditem.nativeimage.NativeImageProxyDefinitionBuildItem;
 import io.quarkus.deployment.builditem.nativeimage.NativeImageResourceBuildItem;
 import io.quarkus.deployment.builditem.nativeimage.ReflectiveClassBuildItem;
+import io.quarkus.deployment.builditem.nativeimage.RuntimeInitializedClassBuildItem;
 import net.i2p.crypto.eddsa.EdDSAEngine;
 import org.apache.sshd.common.channel.ChannelListener;
 import org.apache.sshd.common.forward.PortForwardingEventListener;
@@ -68,7 +69,7 @@ class SshProcessor {
 
     @BuildStep
     void sessionProxy(BuildProducer<NativeImageProxyDefinitionBuildItem> proxiesProducer) {
-        for (String s : Arrays.asList(
+        for (String s : List.of(
                 SessionListener.class.getName(),
                 ChannelListener.class.getName(),
                 PortForwardingEventListener.class.getName())) {
@@ -92,6 +93,12 @@ class SshProcessor {
     @BuildStep
     IndexDependencyBuildItem registerDependencyForIndex2() {
         return new IndexDependencyBuildItem("org.bouncycastle", "bcprov-jdk18on");
+    }
+
+    @BuildStep
+    void runtimeInitializedClasses(BuildProducer<RuntimeInitializedClassBuildItem> runtimeInitializedClass) {
+        runtimeInitializedClass
+                .produce(new RuntimeInitializedClassBuildItem("org.apache.sshd.common.random.JceRandom$Cache"));
     }
 
 }

@@ -22,7 +22,7 @@
     <parent>
         <groupId>org.apache.camel.quarkus</groupId>
         <artifactId>camel-quarkus-build-parent-it</artifactId>
-        <version>3.23.0-SNAPSHOT</version>
+        <version>3.35.0-SNAPSHOT</version>
         <relativePath>../../poms/build-parent-it/pom.xml</relativePath>
     </parent>
 
@@ -93,7 +93,7 @@
         <!-- test dependencies -->
         <dependency>
             <groupId>io.quarkus</groupId>
-            <artifactId>quarkus-junit5</artifactId>
+            <artifactId>quarkus-junit</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -112,19 +112,10 @@
             <scope>test</scope>
             <exclusions>
                 <exclusion>
-                    <groupId>junit</groupId>
-                    <artifactId>junit</artifactId>
-                </exclusion>
-                <exclusion>
                     <groupId>io.fabric8</groupId>
                     <artifactId>zjsonpatch</artifactId>
                 </exclusion>
             </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>io.quarkus</groupId>
-            <artifactId>quarkus-junit4-mock</artifactId>
-            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.awaitility</groupId>
@@ -137,7 +128,7 @@
         <profile>
             <id>ci</id>
             <properties>
-                <quarkus.native.native-image-xmx>6g</quarkus.native.native-image-xmx>
+                <quarkus.native.native-image-xmx>10g</quarkus.native.native-image-xmx>
             </properties>
         </profile>
         <profile>

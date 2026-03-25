@@ -30,7 +30,7 @@ import io.quarkus.deployment.builditem.FeatureBuildItem;
 import io.quarkus.deployment.builditem.IndexDependencyBuildItem;
 import io.quarkus.deployment.builditem.nativeimage.NativeImageResourceBuildItem;
 import io.quarkus.deployment.builditem.nativeimage.ReflectiveClassBuildItem;
-import io.quarkus.deployment.builditem.nativeimage.RuntimeReinitializedClassBuildItem;
+import io.quarkus.deployment.builditem.nativeimage.RuntimeInitializedClassBuildItem;
 import org.apache.activemq.transport.Transport;
 import org.apache.activemq.transport.discovery.DiscoveryAgent;
 import org.apache.activemq.util.IdGenerator;
@@ -81,7 +81,7 @@ class ActiveMQProcessor {
                 ReflectiveClassBuildItem.builder(
                         Stream.of(Transport.class, WireFormatFactory.class, DiscoveryAgent.class)
                                 .map(DotName::createSimple)
-                                .map(index::getAllKnownImplementors)
+                                .map(index::getAllKnownImplementations)
                                 .flatMap(Collection::stream)
                                 .map(ClassInfo::name)
                                 .map(DotName::toString)
@@ -124,8 +124,8 @@ class ActiveMQProcessor {
     }
 
     @BuildStep
-    void runtimeReinitializedClasses(BuildProducer<RuntimeReinitializedClassBuildItem> runtimeReInitializedClass) {
-        runtimeReInitializedClass.produce(new RuntimeReinitializedClassBuildItem(IdGenerator.class.getName()));
+    void runtimeInitializedClasses(BuildProducer<RuntimeInitializedClassBuildItem> runtimeInitializedClass) {
+        runtimeInitializedClass.produce(new RuntimeInitializedClassBuildItem(IdGenerator.class.getName()));
     }
 
     private String getServiceClass(String servicePath) {

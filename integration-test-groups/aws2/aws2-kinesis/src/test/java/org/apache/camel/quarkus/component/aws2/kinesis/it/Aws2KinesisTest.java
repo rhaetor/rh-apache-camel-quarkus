@@ -25,13 +25,11 @@ import io.restassured.http.ContentType;
 import org.apache.camel.quarkus.test.support.aws2.Aws2Client;
 import org.apache.camel.quarkus.test.support.aws2.Aws2TestResource;
 import org.apache.camel.quarkus.test.support.aws2.BaseAWs2TestSupport;
+import org.apache.camel.quarkus.test.support.aws2.Service;
 import org.awaitility.Awaitility;
 import org.jboss.logging.Logger;
-import org.junit.jupiter.api.condition.DisabledIfEnvironmentVariable;
-import org.testcontainers.containers.localstack.LocalStackContainer.Service;
 import software.amazon.awssdk.services.s3.S3Client;
 
-@DisabledIfEnvironmentVariable(named = "CI", matches = "true", disabledReason = "https://github.com/apache/camel-quarkus/issues/6342")
 @QuarkusTest
 @QuarkusTestResource(Aws2TestResource.class)
 class Aws2KinesisTest extends BaseAWs2TestSupport {
@@ -46,6 +44,7 @@ class Aws2KinesisTest extends BaseAWs2TestSupport {
     }
 
     public void kinesis() {
+        LOG.info("Testing kinesis");
         final String msg = "kinesis-" + java.util.UUID.randomUUID().toString().replace("-", "");
         RestAssured.given() //
                 .contentType(ContentType.TEXT)
@@ -66,6 +65,7 @@ class Aws2KinesisTest extends BaseAWs2TestSupport {
 
     @Override
     public void testMethodForDefaultCredentialsProvider() {
+        LOG.info("Testing testMethodForDefaultCredentialsProvider");
         kinesis();
     }
 }

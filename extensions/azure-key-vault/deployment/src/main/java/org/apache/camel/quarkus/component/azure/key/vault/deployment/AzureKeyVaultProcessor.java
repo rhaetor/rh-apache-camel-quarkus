@@ -21,7 +21,6 @@ import java.util.stream.Collectors;
 
 import com.azure.json.JsonSerializable;
 import com.azure.security.keyvault.secrets.implementation.SecretClientImpl;
-import com.azure.security.keyvault.secrets.implementation.models.KeyVaultErrorException;
 import com.microsoft.azure.proton.transport.proxy.impl.DigestProxyChallengeProcessorImpl;
 import io.quarkus.deployment.annotations.BuildProducer;
 import io.quarkus.deployment.annotations.BuildStep;
@@ -55,13 +54,11 @@ class AzureKeyVaultProcessor {
     @BuildStep
     void registerForReflection(CombinedIndexBuildItem combinedIndex, BuildProducer<ReflectiveClassBuildItem> reflectiveClass) {
         Set<String> keyVaultModelClasses = combinedIndex.getIndex()
-                .getAllKnownImplementors(JsonSerializable.class)
+                .getAllKnownImplementations(JsonSerializable.class)
                 .stream()
                 .map(ClassInfo::toString)
                 .filter(className -> className.startsWith("com.azure.security.keyvault"))
                 .collect(Collectors.toSet());
-
-        keyVaultModelClasses.add(KeyVaultErrorException.class.getName());
 
         reflectiveClass.produce(ReflectiveClassBuildItem.builder(keyVaultModelClasses.toArray(new String[0]))
                 .methods(true)

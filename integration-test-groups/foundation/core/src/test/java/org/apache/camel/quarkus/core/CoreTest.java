@@ -17,13 +17,11 @@
 package org.apache.camel.quarkus.core;
 
 import java.io.IOException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 
 import io.quarkus.test.junit.QuarkusTest;
 import io.restassured.RestAssured;
+import org.apache.camel.quarkus.test.DisabledOnQuarkusPlatform;
 import org.apache.camel.support.DefaultLRUCacheFactory;
-import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.Test;
 
 import static org.hamcrest.Matchers.*;
@@ -157,7 +155,17 @@ public class CoreTest {
                 .then()
                 .body(endsWith("include-pattern-folder/included.txt"));
 
-        // Classpath globbing
+        // Resource that does not exist
+        RestAssured.given()
+                .queryParam("path", "sub-resources-folder/invalid")
+                .get("/core/resource/resolve")
+                .then()
+                .body(emptyOrNullString());
+    }
+
+    @DisabledOnQuarkusPlatform // https://github.com/apache/camel-quarkus/issues/7312
+    @Test
+    void classpathPackageScanDirectoryGlob() {
         RestAssured.given()
                 .queryParam("path", "sub-resources-folder/**")
                 .get("/core/resource/resolve")
@@ -181,21 +189,6 @@ public class CoreTest {
                 .body(
                         containsString("sub-resources-folder/foo/bar/test-1.txt"),
                         containsString("sub-resources-folder/foo/bar/test-2.txt"));
-
-        // Resource that does not exist
-        RestAssured.given()
-                .queryParam("path", "sub-resources-folder/invalid")
-                .get("/core/resource/resolve")
-                .then()
-                .body(emptyOrNullString());
-    }
-
-    @Test
-    void classpathPackageScanDirectoryStartGlob() {
-        // TODO: Remove this suppression of test execution in the Quarkus Platform
-        // https://github.com/apache/camel-quarkus/issues/7312
-        Path moduleDir = Paths.get("").toAbsolutePath().getFileName();
-        Assumptions.assumeFalse(moduleDir.toString().equals("camel-quarkus-integration-test-foundation-grouped"));
 
         RestAssured.given()
                 .queryParam("path", "**/*.txt")

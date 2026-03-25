@@ -4,17 +4,17 @@
 = LangChain4j Web Search
 :linkattrs:
 :cq-artifact-id: camel-quarkus-langchain4j-web-search
-:cq-native-supported: false
+:cq-native-supported: true
 :cq-status: Preview
 :cq-status-deprecation: Preview
 :cq-description: LangChain4j Web Search Engine
 :cq-deprecated: false
 :cq-jvm-since: 3.15.0
-:cq-native-since: n/a
+:cq-native-since: 3.24.0
 
 ifeval::[{doc-show-badges} == true]
 [.badges]
-[.badge-key]##JVM since##[.badge-supported]##3.15.0## [.badge-key]##Native##[.badge-unsupported]##unsupported##
+[.badge-key]##JVM since##[.badge-supported]##3.15.0## [.badge-key]##Native since##[.badge-supported]##3.24.0##
 endif::[]
 
 LangChain4j Web Search Engine
@@ -29,6 +29,10 @@ Please refer to the above link for usage and configuration details.
 [id="extensions-langchain4j-web-search-maven-coordinates"]
 == Maven coordinates
 
+https://{link-quarkus-code-generator}/?extension-search=camel-quarkus-langchain4j-web-search[Create a new project with this extension on {link-quarkus-code-generator}, window="_blank"]
+
+Or add the coordinates to your existing project:
+
 [source,xml]
 ----
 <dependency>
@@ -41,17 +45,19 @@ Check the xref:user-guide/index.adoc[User guide] for more information about writ
 endif::[]
 
 [id="extensions-langchain4j-web-search-quarkus-langchain4j-bom"]
-== Ensure Quarkus LangChain4j dependencies version alignment with the Bom
+== LangChain4j usage
 
-In order to ensure alignment across all Quarkus and LangChain4j related dependencies, it is recommended to import the Quarkus LangChain4j bom as below:
-[source,xml]
+=== Dependency management
+
+In order to ensure alignment across all Quarkus and LangChain4j related dependencies, it is recommended to import the LangChain4j BOM as below:
+[source,xml,subs=attributes+]
 ----
 <dependencyManagement>
   <dependencies>
     <dependency>
-      <groupId>io.quarkiverse.langchain4j</groupId>
-      <artifactId>quarkus-langchain4j-bom</artifactId>
-      <version>${insert your version here}</version>
+      <groupId>dev.langchain4j</groupId>
+      <artifactId>langchain4j-bom</artifactId>
+      <version>{langchain4j-version}</version>
       <type>pom</type>
       <scope>import</scope>
     </dependency>
@@ -61,4 +67,9 @@ In order to ensure alignment across all Quarkus and LangChain4j related dependen
 ----
 
 Note that the import order is paramount when using maven `dependencyManagement`.
-As such, one might need to import the `quarkus-langchain4j-bom` before other related Camel and Quarkus boms.
+As such, one might need to import the `langchain4j-bom` before other related Camel and Quarkus BOMs.
+
+=== Quarkus LangChain4j support
+
+WARNING: At present, this extension is neither tested with nor intended to be used in conjunction with any Quarkus LangChain4j extensions.
+Consequently, both JVM and native modes may exhibit unexpected behaviour or fail to function correctly in such configurations.

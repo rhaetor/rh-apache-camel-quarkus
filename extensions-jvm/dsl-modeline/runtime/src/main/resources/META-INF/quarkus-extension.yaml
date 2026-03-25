@@ -30,6 +30,4 @@ metadata:
   guide: "https://camel.apache.org/camel-quarkus/latest/reference/extensions/dsl-modeline.html"
   categories:
   - "integration"
-  status:
-  - "preview"
-  - "deprecated"
+  status: "stable"

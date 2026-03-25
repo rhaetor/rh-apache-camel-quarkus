@@ -23,7 +23,7 @@
     <parent>
         <groupId>org.apache.camel.quarkus</groupId>
         <artifactId>camel-quarkus</artifactId>
-        <version>3.23.0-SNAPSHOT</version>
+        <version>3.35.0-SNAPSHOT</version>
     </parent>
 
     <artifactId>camel-quarkus-tooling</artifactId>
@@ -61,6 +61,7 @@
                 </property>
             </activation>
             <modules>
+                <module>internal-dependency-management</module>
                 <module>perf-regression</module>
             </modules>
         </profile>

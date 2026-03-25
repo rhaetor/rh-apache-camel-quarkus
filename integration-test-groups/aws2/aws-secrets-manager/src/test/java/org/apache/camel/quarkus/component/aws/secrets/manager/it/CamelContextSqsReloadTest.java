@@ -30,11 +30,11 @@ import org.apache.camel.component.aws.secretsmanager.SecretsManagerConstants;
 import org.apache.camel.component.aws.secretsmanager.SecretsManagerOperations;
 import org.apache.camel.quarkus.test.support.aws2.Aws2Client;
 import org.apache.camel.quarkus.test.support.aws2.Aws2TestResource;
+import org.apache.camel.quarkus.test.support.aws2.Service;
 import org.awaitility.Awaitility;
 import org.eclipse.microprofile.config.ConfigProvider;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import org.testcontainers.containers.localstack.LocalStackContainer;
 import software.amazon.awssdk.services.sqs.SqsClient;
 import software.amazon.awssdk.services.sqs.model.SendMessageRequest;
 import software.amazon.awssdk.services.sqs.model.SendMessageResponse;
@@ -59,7 +59,7 @@ public class CamelContextSqsReloadTest {
                 "}";
     }
 
-    @Aws2Client(LocalStackContainer.Service.SQS)
+    @Aws2Client(Service.SQS)
     SqsClient sqsClient;
 
     @Test
@@ -67,9 +67,12 @@ public class CamelContextSqsReloadTest {
         String secretArn = null;
         try {
             final String myUniqueSecretValue = "value" + UUID.randomUUID();
+            final String secretName = RestAssured.get("/aws-secrets-manager/configProperty/camel.vault.aws.secrets")
+                    .then()
+                    .statusCode(200).extract().body().asString();
             //create secret
             secretArn = AwsSecretsManagerUtil.createSecret(
-                    ConfigProvider.getConfig().getValue("camel.vault.aws.secrets", String.class),
+                    secretName,
                     myUniqueSecretValue);
             //update secret
             RestAssured.given()

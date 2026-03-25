@@ -20,9 +20,14 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
+import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
+import org.apache.camel.Exchange;
+import org.apache.camel.Message;
 import org.apache.camel.ProducerTemplate;
+import org.apache.camel.telemetry.Tracer;
 
 @Path("/opentelemetry2")
 @ApplicationScoped
@@ -38,4 +43,28 @@ public class OpenTelemetry2Resource {
         return producerTemplate.requestBody("direct:start", null, String.class);
     }
 
+    @Path("/greet/{name}")
+    @GET
+    @Produces(MediaType.TEXT_PLAIN)
+    public String traceRoute(@PathParam("name") String name) {
+        return producerTemplate.requestBody("direct:greet", name, String.class);
+    }
+
+    @Path("/jdbc/query")
+    @GET
+    @Produces(MediaType.TEXT_PLAIN)
+    public long jdbcQuery() {
+        return producerTemplate.requestBody("direct:jdbcQuery", null, Long.class);
+    }
+
+    @Path("/trace/headers")
+    @GET
+    public Response traceHeaders() {
+        Exchange result = producerTemplate.request("direct:traceHeaderInclusion", null);
+        Message message = result.getMessage();
+        return Response.noContent()
+                .header("spanId", message.getHeader(Tracer.SPAN_HEADER, String.class))
+                .header("traceId", message.getHeader(Tracer.TRACE_HEADER, String.class))
+                .build();
+    }
 }

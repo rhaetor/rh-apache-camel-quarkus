@@ -47,17 +47,26 @@ endif::[]
 [id="extensions-fop-camel-quarkus-limitations"]
 == Camel Quarkus limitations
 
+[id="extensions-fop-limitations-jdk-25"]
+=== JDK 25+
+
+Due to an https://issues.apache.org/jira/browse/FOP-3275[issue] with Apache FOP encountered with JDK 25+, https://www.saxonica.com/documentation12/documentation.xml[`Saxon-HE`] is required to avoid reentrant XML parsing problems.
+
+`Saxon-HE` can be added to your application as follows.
+
+[source,xml]
+----
+<dependency>
+    <groupId>net.sf.saxon</groupId>
+    <artifactId>Saxon-HE</artifactId>
+</dependency>
+----
+
+[id="extensions-fop-limitations-supported-output-types"]
+=== Supported Output Types
+
 While you can use any of the available output types in JVM mode, only PDF output type is supported
-in native mode. PDF output type in native mode has several limitations:
-
-* Default sRGB color space is always disabled because of https://github.com/oracle/graal/issues/2850[Graal VM issue #2850]
-and `disable-srgb-colorspace` https://xmlgraphics.apache.org/fop/2.1/configuration.html[FOP configuration property] is
-ignored.
-
-* If custom fonts are used, font cache has to be disabled because of https://github.com/oracle/graal/issues/460[Graal VM issue #460].
-Please set the https://xmlgraphics.apache.org/fop/2.1/configuration.html[FOP configuration property] `use-cache` to `false`.
-
-NOTE: Native build for module *camel-quarkus-fop* is affected by the link:https://github.com/apache/camel-quarkus/issues/5244[Fop native failures due to pdfbox 3 upgrade #5244], native profile is not working and disabled until the issue is fixed.
+in native mode.
 
 Please file an https://github.com/apache/camel-quarkus/issues/new[issue] if you are missing some specific output format
 in native mode.

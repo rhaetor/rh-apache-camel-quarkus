@@ -107,7 +107,7 @@ class KameletTest {
         RestAssured.get("/kamelet/pipe")
                 .then()
                 .statusCode(200)
-                .body(is("Hello Pipe"));
+                .body(is("Hello+Pipe"));
     }
 
     @Test
@@ -124,5 +124,13 @@ class KameletTest {
                 .then()
                 .statusCode(200)
                 .body(is("15"));
+    }
+
+    @Test
+    public void testKameletFromCatalog() {
+        RestAssured.get("/kamelet/catalog")
+                .then()
+                .statusCode(200)
+                .body(is("Hello From Timer Source Kamelet"));
     }
 }

@@ -22,18 +22,13 @@
     <parent>
         <groupId>org.apache.camel.quarkus</groupId>
         <artifactId>camel-quarkus-build-parent-it</artifactId>
-        <version>3.23.0-SNAPSHOT</version>
+        <version>3.35.0-SNAPSHOT</version>
         <relativePath>../../poms/build-parent-it/pom.xml</relativePath>
     </parent>
 
     <artifactId>camel-quarkus-integration-test-tika</artifactId>
     <name>Camel Quarkus :: Integration Tests :: Tika</name>
     <description>Integration tests for Camel Quarkus Tika extension</description>
-
-    <properties>
-        <!-- Spends too much memory on GH actions https://github.com/apache/camel-quarkus/issues/3230 -->
-        <ci.native.tests.skip>true</ci.native.tests.skip>
-    </properties>
 
     <dependencies>
         <dependency>
@@ -52,7 +47,7 @@
         <!-- test dependencies -->
         <dependency>
             <groupId>io.quarkus</groupId>
-            <artifactId>quarkus-junit5</artifactId>
+            <artifactId>quarkus-junit</artifactId>
             <scope>test</scope>
             <exclusions>
                 <exclusion>

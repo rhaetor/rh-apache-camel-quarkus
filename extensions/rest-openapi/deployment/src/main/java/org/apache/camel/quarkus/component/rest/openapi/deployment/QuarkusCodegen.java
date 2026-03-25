@@ -69,6 +69,10 @@ public class QuarkusCodegen extends AbstractJavaCodegen implements BeanValidatio
         CodegenModel model = super.fromModel(name, schema, allSchemas);
         if (schema != null && "array".equals(schema.getType())) {
             additionalProperties.put("useQuarkusRegisterForReflection", false);
+        } else {
+            // Add import and enable RegisterForReflection for non-array models
+            model.imports.add("QuarkusRegisterForReflection");
+            additionalProperties.put("useQuarkusRegisterForReflection", true);
         }
         if (additionalProperties.containsKey("ignoreUnknownProperties")) {
             model.imports.add("JsonIgnoreProperties");
@@ -115,11 +119,6 @@ public class QuarkusCodegen extends AbstractJavaCodegen implements BeanValidatio
                 model.imports.add("JsonCreator");
             }
         }
-        model.imports.add("QuarkusRegisterForReflection");
-        additionalProperties.put("useQuarkusRegisterForReflection", true);
-        if (additionalProperties.containsKey("ignoreUnknownProperties")) {
-            model.imports.add("JsonIgnoreProperties");
-        }
     }
 
     @Override
@@ -135,5 +134,11 @@ public class QuarkusCodegen extends AbstractJavaCodegen implements BeanValidatio
     @Override
     public boolean isNotNullJacksonAnnotation() {
         return notNullJacksonAnnotation;
+    }
+
+    @Override
+    public String modelFileFolder() {
+        // Override the original impl to avoid redundant src/main/java directory prefix being added to the output path
+        return outputFolder + "/" + modelPackage().replace('.', '/');
     }
 }

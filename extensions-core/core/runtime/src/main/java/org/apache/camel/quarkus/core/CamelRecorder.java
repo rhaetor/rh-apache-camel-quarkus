@@ -21,6 +21,7 @@ import java.util.Set;
 import java.util.function.Supplier;
 
 import io.quarkus.arc.Arc;
+import io.quarkus.arc.InjectableInstance;
 import io.quarkus.runtime.RuntimeValue;
 import io.quarkus.runtime.annotations.Recorder;
 import org.apache.camel.CamelContext;
@@ -51,17 +52,22 @@ import org.apache.camel.support.startup.DefaultStartupStepRecorder;
 public class CamelRecorder {
     public void registerCamelBeanQualifierResolver(
             String className,
+            String beanName,
             RuntimeValue<CamelBeanQualifierResolver> runtimeValue,
-            Map<String, CamelBeanQualifierResolver> beanQualifiers) {
+            Map<BeanQualifierResolverIdentifier, CamelBeanQualifierResolver> beanQualifiers) {
 
-        if (beanQualifiers.containsKey(className)) {
-            throw new RuntimeException("Duplicate CamelBeanQualifierResolver detected for class: " + className);
+        CamelBeanQualifierResolver resolver = runtimeValue.getValue();
+        BeanQualifierResolverIdentifier identifier = resolver.getIdentifier(className, beanName);
+
+        if (beanQualifiers.containsKey(identifier)) {
+            throw new RuntimeException("Duplicate CamelBeanQualifierResolver detected for: " + identifier);
         }
 
-        beanQualifiers.put(className, runtimeValue.getValue());
+        beanQualifiers.put(identifier, resolver);
     }
 
-    public RuntimeValue<Registry> createRegistry(Map<String, CamelBeanQualifierResolver> beanQualifierResolvers) {
+    public RuntimeValue<Registry> createRegistry(
+            Map<BeanQualifierResolverIdentifier, CamelBeanQualifierResolver> beanQualifierResolvers) {
         return new RuntimeValue<>(new RuntimeRegistry(beanQualifierResolvers));
     }
 
@@ -215,8 +221,19 @@ public class CamelRecorder {
 
     public void postProcessBeanAndBindToRegistry(RuntimeValue<CamelContext> camelContextRuntimeValue, Class<?> beanType) {
         try {
+            Object bean;
+
+            // To enable features like CDI injection to work with @BindToRegistry factory methods
+            // try to find an existing bean for the @BindToRegistry host class and use it for postprocessing
+            InjectableInstance<?> beanInstance = Arc.container().select(beanType);
+            if (beanInstance.isResolvable()) {
+                bean = beanInstance.get();
+            } else {
+                // No existing CDI bean so fallback to direct instantiation
+                bean = beanType.getDeclaredConstructor().newInstance();
+            }
+
             CamelContext camelContext = camelContextRuntimeValue.getValue();
-            Object bean = beanType.getDeclaredConstructor().newInstance();
             CamelBeanPostProcessor beanPostProcessor = PluginHelper.getBeanPostProcessor(camelContext);
             beanPostProcessor.postProcessBeforeInitialization(bean, bean.getClass().getName());
             beanPostProcessor.postProcessAfterInitialization(bean, bean.getClass().getName());

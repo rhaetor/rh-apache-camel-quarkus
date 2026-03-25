@@ -22,7 +22,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -35,15 +34,13 @@ import io.quarkus.bootstrap.model.ApplicationModel;
 import io.quarkus.bootstrap.prebuild.CodeGenException;
 import io.quarkus.deployment.CodeGenContext;
 import io.quarkus.deployment.CodeGenProvider;
-import io.quarkus.deployment.util.ProcessUtil;
 import io.quarkus.maven.dependency.ResolvedDependency;
 import io.quarkus.paths.PathFilter;
 import io.quarkus.runtime.util.HashUtil;
-import io.quarkus.utilities.OS;
+import io.smallrye.common.cpu.CPU;
+import io.smallrye.common.os.OS;
 import org.eclipse.microprofile.config.Config;
 import org.jboss.logging.Logger;
-
-import static java.util.Arrays.asList;
 
 /**
  * Custom {@link CodeGenProvider} for Camel Quarkus gRPC. Based on the original Quarkus gRPC implementation:
@@ -152,21 +149,22 @@ public class CamelQuarkusGrpcCodegenProvider implements CodeGenProvider {
                     command.add(String.format("-I=%s", escapeWhitespace(protoDir)));
                 }
 
-                command.addAll(asList("--plugin=protoc-gen-grpc=" + executables.grpc,
+                command.addAll(List.of("--plugin=protoc-gen-grpc=" + executables.grpc,
                         "--grpc_out=" + outDir,
                         "--java_out=" + outDir));
                 command.addAll(protoFiles);
 
                 ProcessBuilder processBuilder = new ProcessBuilder(command);
+                if (context.shouldRedirectIO()) {
+                    processBuilder.inheritIO();
+                }
 
-                final Process process = ProcessUtil.launchProcess(processBuilder, context.shouldRedirectIO());
+                final Process process = processBuilder.start();
                 int resultCode = process.waitFor();
                 if (resultCode != 0) {
                     throw new CodeGenException("Failed to generate Java classes from proto files: " + protoFiles +
                             " to " + outDir.toAbsolutePath() + " with command " + String.join(" ", command));
                 }
-                new CamelQuarkusGrpcPostProcessor(outDir).process();
-                LOG.info("Successfully finished generating and post-processing sources from proto files");
                 return true;
             }
         } catch (IOException | InterruptedException e) {
@@ -219,7 +217,7 @@ public class CamelQuarkusGrpcCodegenProvider implements CodeGenProvider {
         }
         boolean scanAll = "all".equalsIgnoreCase(scanDependencies);
 
-        List<String> dependenciesToScan = asList(scanDependencies.split(","));
+        List<String> dependenciesToScan = List.of(scanDependencies.split(","));
 
         ApplicationModel appModel = context.applicationModel();
         List<Path> protoFilesFromDependencies = new ArrayList<>();
@@ -264,7 +262,7 @@ public class CamelQuarkusGrpcCodegenProvider implements CodeGenProvider {
         }
 
         boolean scanAll = "all".equals(scanForImports.toLowerCase(Locale.getDefault()));
-        List<String> dependenciesToScan = Arrays.asList(scanForImports.split(","));
+        List<String> dependenciesToScan = List.of(scanForImports.split(","));
 
         Set<String> importDirectories = new HashSet<>();
         ApplicationModel appModel = context.applicationModel();
@@ -328,7 +326,7 @@ public class CamelQuarkusGrpcCodegenProvider implements CodeGenProvider {
     }
 
     private String escapeWhitespace(String path) {
-        if (OS.determineOS() == OS.LINUX) {
+        if (io.smallrye.common.os.OS.current() != OS.WINDOWS) {
             return path.replace(" ", "\\ ");
         } else {
             return path;
@@ -401,8 +399,8 @@ public class CamelQuarkusGrpcCodegenProvider implements CodeGenProvider {
     }
 
     private String osClassifier() throws CodeGenException {
-        String architecture = OS.getArchitecture();
-        switch (OS.determineOS()) {
+        String architecture = getArchitecture();
+        switch (OS.current()) {
         case LINUX:
             return "linux-" + architecture;
         case WINDOWS:
@@ -413,6 +411,24 @@ public class CamelQuarkusGrpcCodegenProvider implements CodeGenProvider {
             throw new CodeGenException(
                     "Unsupported OS, please use maven plugin instead to generate Java classes from proto files");
         }
+    }
+
+    public static String getArchitecture() {
+        return switch (CPU.host()) {
+        case x64 -> "x86_64";
+        case x86 -> "x86_32";
+        case arm -> "arm_32";
+        case aarch64 -> "aarch_64";
+        case mips -> "mips_32";
+        case mipsel -> "mipsel_32";
+        case mips64 -> "mips_64";
+        case mips64el -> "mipsel_64";
+        case ppc32 -> "ppc_32";
+        case ppc32le -> "ppcle_32";
+        case ppc -> "ppc_64";
+        case ppcle -> "ppcle_64";
+        default -> null;
+        };
     }
 
     private static class Executables {

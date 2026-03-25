@@ -22,7 +22,7 @@
     <parent>
         <groupId>org.apache.camel.quarkus</groupId>
         <artifactId>camel-quarkus-poms</artifactId>
-        <version>3.23.0-SNAPSHOT</version>
+        <version>3.35.0-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
     <artifactId>camel-quarkus-bom</artifactId>
@@ -31,7 +31,8 @@
     <properties>
         <!-- This property is kept in sync with project.version by the release plugin -->
         <!-- Do not change to project.version because otherwise the end user apps having our BOM as parent (rather than importing it) will stop working -->
-        <camel-quarkus.version>3.23.0-SNAPSHOT</camel-quarkus.version>
+        <camel-quarkus.version>3.35.0-SNAPSHOT</camel-quarkus.version>
+        <allow-findbugs>true</allow-findbugs>
     </properties>
     <dependencyManagement>
         <dependencies>
@@ -93,6 +94,13 @@
                 <scope>import</scope>
             </dependency>
             <dependency>
+                <groupId>dev.langchain4j</groupId>
+                <artifactId>langchain4j-bom</artifactId>
+                <version>${langchain4j.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <dependency>
                 <groupId>io.debezium</groupId>
                 <artifactId>debezium-bom</artifactId>
                 <version>${debezium.version}</version>
@@ -119,6 +127,11 @@
             <dependency>
                 <groupId>org.apache.camel</groupId>
                 <artifactId>camel-activemq</artifactId>
+                <version>${camel.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.camel</groupId>
+                <artifactId>camel-activemq6</artifactId>
                 <version>${camel.version}</version>
             </dependency>
             <dependency>
@@ -166,6 +179,10 @@
                 <artifactId>camel-asterisk</artifactId>
                 <version>${camel.version}</version>
                 <exclusions>
+                    <exclusion>
+                        <groupId>com.google.code.findbugs</groupId>
+                        <artifactId>jsr305</artifactId>
+                    </exclusion>
                     <exclusion>
                         <groupId>org.checkerframework</groupId>
                         <artifactId>checker-qual</artifactId>
@@ -216,6 +233,17 @@
             </dependency>
             <dependency>
                 <groupId>org.apache.camel</groupId>
+                <artifactId>camel-aws-common</artifactId>
+                <version>${camel.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>commons-logging</groupId>
+                        <artifactId>commons-logging</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.camel</groupId>
                 <artifactId>camel-aws-secrets-manager</artifactId>
                 <version>${camel.version}</version>
                 <exclusions>
@@ -230,6 +258,10 @@
                 <artifactId>camel-aws-xray</artifactId>
                 <version>${camel.version}</version>
                 <exclusions>
+                    <exclusion>
+                        <groupId>com.google.auto.value</groupId>
+                        <artifactId>auto-value-annotations</artifactId>
+                    </exclusion>
                     <exclusion>
                         <groupId>commons-logging</groupId>
                         <artifactId>commons-logging</artifactId>
@@ -342,8 +374,16 @@
                         <artifactId>commons-logging</artifactId>
                     </exclusion>
                     <exclusion>
+                        <groupId>io.github.classgraph</groupId>
+                        <artifactId>classgraph</artifactId>
+                    </exclusion>
+                    <exclusion>
                         <groupId>javax.validation</groupId>
                         <artifactId>validation-api</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.apache.kafka</groupId>
+                        <artifactId>kafka-clients</artifactId>
                     </exclusion>
                     <exclusion>
                         <groupId>org.checkerframework</groupId>
@@ -351,7 +391,15 @@
                     </exclusion>
                     <exclusion>
                         <groupId>org.jetbrains.kotlin</groupId>
-                        <artifactId>kotlin-stdlib-common</artifactId>
+                        <artifactId>*</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.jetbrains.kotlinx</groupId>
+                        <artifactId>*</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.lz4</groupId>
+                        <artifactId>lz4-java</artifactId>
                     </exclusion>
                 </exclusions>
             </dependency>
@@ -644,7 +692,6 @@
                 <artifactId>camel-cassandraql</artifactId>
                 <version>${camel.version}</version>
                 <exclusions>
-                    <!-- TODO: Remove when cassandra driver is aligned. https://github.com/datastax/cassandra-quarkus/issues/245 -->
                     <exclusion>
                         <groupId>org.apache.cassandra</groupId>
                         <artifactId>*</artifactId>
@@ -674,6 +721,11 @@
             <dependency>
                 <groupId>org.apache.camel</groupId>
                 <artifactId>camel-cli-connector</artifactId>
+                <version>${camel.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.camel</groupId>
+                <artifactId>camel-cli-debug</artifactId>
                 <version>${camel.version}</version>
             </dependency>
             <dependency>
@@ -779,6 +831,14 @@
                 <version>${camel.version}</version>
                 <exclusions>
                     <exclusion>
+                        <groupId>com.squareup.okhttp3</groupId>
+                        <artifactId>okhttp</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>com.squareup.okhttp3</groupId>
+                        <artifactId>logging-interceptor</artifactId>
+                    </exclusion>
+                    <exclusion>
                         <groupId>commons-logging</groupId>
                         <artifactId>commons-logging</artifactId>
                     </exclusion>
@@ -819,10 +879,21 @@
                 <groupId>org.apache.camel</groupId>
                 <artifactId>camel-cxf-soap</artifactId>
                 <version>${camel.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <artifactId>jsr305</artifactId>
+                        <groupId>com.google.code.findbugs</groupId>
+                    </exclusion>
+                </exclusions>
             </dependency>
             <dependency>
                 <groupId>org.apache.camel</groupId>
                 <artifactId>camel-cxf-transport</artifactId>
+                <version>${camel.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.camel</groupId>
+                <artifactId>camel-cyberark-vault</artifactId>
                 <version>${camel.version}</version>
             </dependency>
             <dependency>
@@ -875,6 +946,10 @@
                         <groupId>javax.ws.rs</groupId>
                         <artifactId>javax.ws.rs-api</artifactId>
                     </exclusion>
+                    <exclusion>
+                        <groupId>org.lz4</groupId>
+                        <artifactId>lz4-java</artifactId>
+                    </exclusion>
                 </exclusions>
             </dependency>
             <dependency>
@@ -889,6 +964,21 @@
             </dependency>
             <dependency>
                 <groupId>org.apache.camel</groupId>
+                <artifactId>camel-debezium-oracle</artifactId>
+                <version>${camel.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <artifactId>jsr305</artifactId>
+                        <groupId>com.google.code.findbugs</groupId>
+                    </exclusion>
+                    <exclusion>
+                        <artifactId>infinispan-core</artifactId>
+                        <groupId>org.infinispan</groupId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.camel</groupId>
                 <artifactId>camel-debezium-postgres</artifactId>
                 <version>${camel.version}</version>
             </dependency>
@@ -900,11 +990,6 @@
             <dependency>
                 <groupId>org.apache.camel</groupId>
                 <artifactId>camel-debug</artifactId>
-                <version>${camel.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.camel</groupId>
-                <artifactId>camel-dfdl</artifactId>
                 <version>${camel.version}</version>
             </dependency>
             <dependency>
@@ -953,6 +1038,11 @@
             <dependency>
                 <groupId>org.apache.camel</groupId>
                 <artifactId>camel-dns</artifactId>
+                <version>${camel.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.camel</groupId>
+                <artifactId>camel-docling</artifactId>
                 <version>${camel.version}</version>
             </dependency>
             <dependency>
@@ -1128,6 +1218,12 @@
                 <groupId>org.apache.camel</groupId>
                 <artifactId>camel-flatpack</artifactId>
                 <version>${camel.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>org.projectlombok</groupId>
+                        <artifactId>lombok</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
             <dependency>
                 <groupId>org.apache.camel</groupId>
@@ -1137,6 +1233,10 @@
                     <exclusion>
                         <groupId>com.google.code.findbugs</groupId>
                         <artifactId>jsr305</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.lz4</groupId>
+                        <artifactId>lz4-java</artifactId>
                     </exclusion>
                 </exclusions>
             </dependency>
@@ -1157,6 +1257,21 @@
             </dependency>
             <dependency>
                 <groupId>org.apache.camel</groupId>
+                <artifactId>camel-fory</artifactId>
+                <version>${camel.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>org.checkerframework</groupId>
+                        <artifactId>checker-qual</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.apache.fory</groupId>
+                        <artifactId>fory-core</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.camel</groupId>
                 <artifactId>camel-freemarker</artifactId>
                 <version>${camel.version}</version>
             </dependency>
@@ -1164,17 +1279,6 @@
                 <groupId>org.apache.camel</groupId>
                 <artifactId>camel-ftp</artifactId>
                 <version>${camel.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.camel</groupId>
-                <artifactId>camel-fury</artifactId>
-                <version>${camel.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <groupId>org.checkerframework</groupId>
-                        <artifactId>checker-qual</artifactId>
-                    </exclusion>
-                </exclusions>
             </dependency>
             <dependency>
                 <groupId>org.apache.camel</groupId>
@@ -1276,6 +1380,10 @@
                         <artifactId>commons-logging</artifactId>
                     </exclusion>
                     <exclusion>
+                        <groupId>io.grpc</groupId>
+                        <artifactId>grpc-netty-shaded</artifactId>
+                    </exclusion>
+                    <exclusion>
                         <groupId>org.checkerframework</groupId>
                         <artifactId>checker-qual</artifactId>
                     </exclusion>
@@ -1353,6 +1461,10 @@
                         <artifactId>commons-logging</artifactId>
                     </exclusion>
                     <exclusion>
+                        <groupId>io.grpc</groupId>
+                        <artifactId>grpc-netty-shaded</artifactId>
+                    </exclusion>
+                    <exclusion>
                         <groupId>org.checkerframework</groupId>
                         <artifactId>checker-qual</artifactId>
                     </exclusion>
@@ -1423,6 +1535,11 @@
             <dependency>
                 <groupId>org.apache.camel</groupId>
                 <artifactId>camel-groovy</artifactId>
+                <version>${camel.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.camel</groupId>
+                <artifactId>camel-groovy-xml</artifactId>
                 <version>${camel.version}</version>
             </dependency>
             <dependency>
@@ -1550,7 +1667,38 @@
             </dependency>
             <dependency>
                 <groupId>org.apache.camel</groupId>
+                <artifactId>camel-ibm-cos</artifactId>
+                <version>${camel.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>commons-logging</groupId>
+                        <artifactId>commons-logging</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>javax.xml.bind</groupId>
+                        <artifactId>jaxb-api</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.camel</groupId>
                 <artifactId>camel-ibm-secrets-manager</artifactId>
+                <version>${camel.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>org.lz4</groupId>
+                        <artifactId>lz4-java</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.camel</groupId>
+                <artifactId>camel-ibm-watson-discovery</artifactId>
+                <version>${camel.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.camel</groupId>
+                <artifactId>camel-ibm-watson-language</artifactId>
                 <version>${camel.version}</version>
             </dependency>
             <dependency>
@@ -1585,18 +1733,13 @@
                 <artifactId>camel-infinispan</artifactId>
                 <version>${camel.version}</version>
                 <exclusions>
-                    <!-- TODO: https://github.com/apache/camel-quarkus/issues/5844 -->
-                    <exclusion>
-                        <groupId>org.infinispan</groupId>
-                        <artifactId>infinispan-commons-jakarta</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>org.infinispan</groupId>
-                        <artifactId>infinispan-client-hotrod-jakarta</artifactId>
-                    </exclusion>
                     <exclusion>
                         <groupId>org.slf4j</groupId>
                         <artifactId>jcl-over-slf4j</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <artifactId>infinispan-core</artifactId>
+                        <groupId>org.infinispan</groupId>
                     </exclusion>
                 </exclusions>
             </dependency>
@@ -1613,6 +1756,11 @@
             <dependency>
                 <groupId>org.apache.camel</groupId>
                 <artifactId>camel-irc</artifactId>
+                <version>${camel.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.camel</groupId>
+                <artifactId>camel-iso8583</artifactId>
                 <version>${camel.version}</version>
             </dependency>
             <dependency>
@@ -1840,10 +1988,21 @@
                 <groupId>org.apache.camel</groupId>
                 <artifactId>camel-kafka</artifactId>
                 <version>${camel.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>org.lz4</groupId>
+                        <artifactId>lz4-java</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
             <dependency>
                 <groupId>org.apache.camel</groupId>
                 <artifactId>camel-kamelet</artifactId>
+                <version>${camel.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.camel</groupId>
+                <artifactId>camel-keycloak</artifactId>
                 <version>${camel.version}</version>
             </dependency>
             <dependency>
@@ -1891,8 +2050,28 @@
             </dependency>
             <dependency>
                 <groupId>org.apache.camel</groupId>
+                <artifactId>camel-langchain4j-agent</artifactId>
+                <version>${camel.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.camel</groupId>
+                <artifactId>camel-langchain4j-agent-api</artifactId>
+                <version>${camel.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.camel</groupId>
                 <artifactId>camel-langchain4j-chat</artifactId>
                 <version>${camel.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>dev.langchain4j</groupId>
+                        <artifactId>langchain4j-open-ai</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>dev.langchain4j</groupId>
+                        <artifactId>langchain4j-hugging-face</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
             <dependency>
                 <groupId>org.apache.camel</groupId>
@@ -1902,6 +2081,16 @@
             <dependency>
                 <groupId>org.apache.camel</groupId>
                 <artifactId>camel-langchain4j-embeddings</artifactId>
+                <version>${camel.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.camel</groupId>
+                <artifactId>camel-langchain4j-embeddingstore</artifactId>
+                <version>${camel.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.camel</groupId>
+                <artifactId>camel-langchain4j-embeddingstore-api</artifactId>
                 <version>${camel.version}</version>
             </dependency>
             <dependency>
@@ -2007,6 +2196,11 @@
             </dependency>
             <dependency>
                 <groupId>org.apache.camel</groupId>
+                <artifactId>camel-mdc</artifactId>
+                <version>${camel.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.camel</groupId>
                 <artifactId>camel-micrometer</artifactId>
                 <version>${camel.version}</version>
             </dependency>
@@ -2019,6 +2213,12 @@
                 <groupId>org.apache.camel</groupId>
                 <artifactId>camel-microprofile-fault-tolerance</artifactId>
                 <version>${camel.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>io.smallrye</groupId>
+                        <artifactId>*</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
             <dependency>
                 <groupId>org.apache.camel</groupId>
@@ -2032,6 +2232,17 @@
                     <exclusion>
                         <groupId>org.glassfish</groupId>
                         <artifactId>jakarta.json</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.camel</groupId>
+                <artifactId>camel-milo</artifactId>
+                <version>${camel.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>com.sun.activation</groupId>
+                        <artifactId>jakarta.activation</artifactId>
                     </exclusion>
                 </exclusions>
             </dependency>
@@ -2051,6 +2262,10 @@
                     <exclusion>
                         <groupId>commons-logging</groupId>
                         <artifactId>commons-logging</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>io.grpc</groupId>
+                        <artifactId>grpc-netty-shaded</artifactId>
                     </exclusion>
                     <exclusion>
                         <groupId>javax.servlet</groupId>
@@ -2076,8 +2291,25 @@
             </dependency>
             <dependency>
                 <groupId>org.apache.camel</groupId>
+                <artifactId>camel-mina-sftp</artifactId>
+                <version>${camel.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>org.slf4j</groupId>
+                        <artifactId>jcl-over-slf4j</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.camel</groupId>
                 <artifactId>camel-minio</artifactId>
                 <version>${camel.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>com.squareup.okhttp3</groupId>
+                        <artifactId>*</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
             <dependency>
                 <groupId>org.apache.camel</groupId>
@@ -2153,6 +2385,11 @@
             </dependency>
             <dependency>
                 <groupId>org.apache.camel</groupId>
+                <artifactId>camel-oauth</artifactId>
+                <version>${camel.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.camel</groupId>
                 <artifactId>camel-observability-services</artifactId>
                 <version>${camel.version}</version>
             </dependency>
@@ -2180,6 +2417,22 @@
                     <exclusion>
                         <groupId>commons-logging</groupId>
                         <artifactId>commons-logging</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.camel</groupId>
+                <artifactId>camel-once</artifactId>
+                <version>${camel.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.camel</groupId>
+                <artifactId>camel-openai</artifactId>
+                <version>${camel.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>io.swagger.core.v3</groupId>
+                        <artifactId>swagger-annotations</artifactId>
                     </exclusion>
                 </exclusions>
             </dependency>
@@ -2249,6 +2502,7 @@
                 <artifactId>camel-optaplanner</artifactId>
                 <version>${camel.version}</version>
                 <exclusions>
+                    <!-- TODO: Restore when optaplanner-quarkus > 10.0.0 is available - https://github.com/apache/camel-quarkus/issues/7533
                     <exclusion>
                         <groupId>org.optaplanner</groupId>
                         <artifactId>optaplanner-core</artifactId>
@@ -2261,6 +2515,7 @@
                         <groupId>org.optaplanner</groupId>
                         <artifactId>optaplanner-persistence-common</artifactId>
                     </exclusion>
+                    -->
                 </exclusions>
             </dependency>
             <dependency>
@@ -2335,6 +2590,11 @@
             </dependency>
             <dependency>
                 <groupId>org.apache.camel</groupId>
+                <artifactId>camel-pqc</artifactId>
+                <version>${camel.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.camel</groupId>
                 <artifactId>camel-printer</artifactId>
                 <version>${camel.version}</version>
             </dependency>
@@ -2364,6 +2624,10 @@
                         <artifactId>javax.activation</artifactId>
                     </exclusion>
                     <exclusion>
+                        <groupId>commons-logging</groupId>
+                        <artifactId>commons-logging</artifactId>
+                    </exclusion>
+                    <exclusion>
                         <groupId>javax.validation</groupId>
                         <artifactId>validation-api</artifactId>
                     </exclusion>
@@ -2391,6 +2655,11 @@
             </dependency>
             <dependency>
                 <groupId>org.apache.camel</groupId>
+                <artifactId>camel-python</artifactId>
+                <version>${camel.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.camel</groupId>
                 <artifactId>camel-qdrant</artifactId>
                 <version>${camel.version}</version>
                 <exclusions>
@@ -2401,6 +2670,10 @@
                     <exclusion>
                         <groupId>com.google.code.findbugs</groupId>
                         <artifactId>jsr305</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>io.grpc</groupId>
+                        <artifactId>grpc-netty-shaded</artifactId>
                     </exclusion>
                     <exclusion>
                         <groupId>org.checkerframework</groupId>
@@ -2790,6 +3063,17 @@
             </dependency>
             <dependency>
                 <groupId>org.apache.camel</groupId>
+                <artifactId>camel-test-junit6</artifactId>
+                <version>${camel.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>org.apache.camel</groupId>
+                        <artifactId>camel-directvm</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.camel</groupId>
                 <artifactId>camel-threadpoolfactory-vertx</artifactId>
                 <version>${camel.version}</version>
             </dependency>
@@ -2905,6 +3189,37 @@
                     <exclusion>
                         <groupId>commons-logging</groupId>
                         <artifactId>commons-logging</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.camel</groupId>
+                <artifactId>camel-weaviate</artifactId>
+                <version>${camel.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>com.github.stephenc.jcip</groupId>
+                        <artifactId>jcip-annotations</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>com.google.android</groupId>
+                        <artifactId>annotations</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>animal-sniffer-annotations</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>io.grpc</groupId>
+                        <artifactId>grpc-netty-shaded</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>com.google.code.findbugs</groupId>
+                        <artifactId>jsr305</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.projectlombok</groupId>
+                        <artifactId>lombok</artifactId>
                     </exclusion>
                 </exclusions>
             </dependency>
@@ -3094,6 +3409,16 @@
             <dependency>
                 <groupId>org.apache.camel.quarkus</groupId>
                 <artifactId>camel-quarkus-activemq-deployment</artifactId>
+                <version>${camel-quarkus.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.camel.quarkus</groupId>
+                <artifactId>camel-quarkus-activemq6</artifactId>
+                <version>${camel-quarkus.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.camel.quarkus</groupId>
+                <artifactId>camel-quarkus-activemq6-deployment</artifactId>
                 <version>${camel-quarkus.version}</version>
             </dependency>
             <dependency>
@@ -3653,6 +3978,16 @@
             </dependency>
             <dependency>
                 <groupId>org.apache.camel.quarkus</groupId>
+                <artifactId>camel-quarkus-cli-debug</artifactId>
+                <version>${camel-quarkus.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.camel.quarkus</groupId>
+                <artifactId>camel-quarkus-cli-debug-deployment</artifactId>
+                <version>${camel-quarkus.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.camel.quarkus</groupId>
                 <artifactId>camel-quarkus-cloudevents</artifactId>
                 <version>${camel-quarkus.version}</version>
             </dependency>
@@ -3823,6 +4158,16 @@
             </dependency>
             <dependency>
                 <groupId>org.apache.camel.quarkus</groupId>
+                <artifactId>camel-quarkus-cyberark-vault</artifactId>
+                <version>${camel-quarkus.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.camel.quarkus</groupId>
+                <artifactId>camel-quarkus-cyberark-vault-deployment</artifactId>
+                <version>${camel-quarkus.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.camel.quarkus</groupId>
                 <artifactId>camel-quarkus-dataformat</artifactId>
                 <version>${camel-quarkus.version}</version>
             </dependency>
@@ -3869,6 +4214,16 @@
             <dependency>
                 <groupId>org.apache.camel.quarkus</groupId>
                 <artifactId>camel-quarkus-debezium-mysql-deployment</artifactId>
+                <version>${camel-quarkus.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.camel.quarkus</groupId>
+                <artifactId>camel-quarkus-debezium-oracle</artifactId>
+                <version>${camel-quarkus.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.camel.quarkus</groupId>
+                <artifactId>camel-quarkus-debezium-oracle-deployment</artifactId>
                 <version>${camel-quarkus.version}</version>
             </dependency>
             <dependency>
@@ -3959,6 +4314,16 @@
             <dependency>
                 <groupId>org.apache.camel.quarkus</groupId>
                 <artifactId>camel-quarkus-dns-deployment</artifactId>
+                <version>${camel-quarkus.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.camel.quarkus</groupId>
+                <artifactId>camel-quarkus-docling</artifactId>
+                <version>${camel-quarkus.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.camel.quarkus</groupId>
+                <artifactId>camel-quarkus-docling-deployment</artifactId>
                 <version>${camel-quarkus.version}</version>
             </dependency>
             <dependency>
@@ -4113,6 +4478,16 @@
             </dependency>
             <dependency>
                 <groupId>org.apache.camel.quarkus</groupId>
+                <artifactId>camel-quarkus-fory</artifactId>
+                <version>${camel-quarkus.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.camel.quarkus</groupId>
+                <artifactId>camel-quarkus-fory-deployment</artifactId>
+                <version>${camel-quarkus.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.camel.quarkus</groupId>
                 <artifactId>camel-quarkus-freemarker</artifactId>
                 <version>${camel-quarkus.version}</version>
             </dependency>
@@ -4129,16 +4504,6 @@
             <dependency>
                 <groupId>org.apache.camel.quarkus</groupId>
                 <artifactId>camel-quarkus-ftp-deployment</artifactId>
-                <version>${camel-quarkus.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.camel.quarkus</groupId>
-                <artifactId>camel-quarkus-fury</artifactId>
-                <version>${camel-quarkus.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.camel.quarkus</groupId>
-                <artifactId>camel-quarkus-fury-deployment</artifactId>
                 <version>${camel-quarkus.version}</version>
             </dependency>
             <dependency>
@@ -4293,6 +4658,16 @@
             </dependency>
             <dependency>
                 <groupId>org.apache.camel.quarkus</groupId>
+                <artifactId>camel-quarkus-groovy-xml</artifactId>
+                <version>${camel-quarkus.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.camel.quarkus</groupId>
+                <artifactId>camel-quarkus-groovy-xml-deployment</artifactId>
+                <version>${camel-quarkus.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.camel.quarkus</groupId>
                 <artifactId>camel-quarkus-grpc</artifactId>
                 <version>${camel-quarkus.version}</version>
             </dependency>
@@ -4398,12 +4773,42 @@
             </dependency>
             <dependency>
                 <groupId>org.apache.camel.quarkus</groupId>
+                <artifactId>camel-quarkus-ibm-cos</artifactId>
+                <version>${camel-quarkus.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.camel.quarkus</groupId>
+                <artifactId>camel-quarkus-ibm-cos-deployment</artifactId>
+                <version>${camel-quarkus.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.camel.quarkus</groupId>
                 <artifactId>camel-quarkus-ibm-secrets-manager</artifactId>
                 <version>${camel-quarkus.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.apache.camel.quarkus</groupId>
                 <artifactId>camel-quarkus-ibm-secrets-manager-deployment</artifactId>
+                <version>${camel-quarkus.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.camel.quarkus</groupId>
+                <artifactId>camel-quarkus-ibm-watson-discovery</artifactId>
+                <version>${camel-quarkus.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.camel.quarkus</groupId>
+                <artifactId>camel-quarkus-ibm-watson-discovery-deployment</artifactId>
+                <version>${camel-quarkus.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.camel.quarkus</groupId>
+                <artifactId>camel-quarkus-ibm-watson-language</artifactId>
+                <version>${camel-quarkus.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.camel.quarkus</groupId>
+                <artifactId>camel-quarkus-ibm-watson-language-deployment</artifactId>
                 <version>${camel-quarkus.version}</version>
             </dependency>
             <dependency>
@@ -4443,6 +4848,16 @@
             </dependency>
             <dependency>
                 <groupId>org.apache.camel.quarkus</groupId>
+                <artifactId>camel-quarkus-infinispan-cluster-service</artifactId>
+                <version>${camel-quarkus.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.camel.quarkus</groupId>
+                <artifactId>camel-quarkus-infinispan-cluster-service-deployment</artifactId>
+                <version>${camel-quarkus.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.camel.quarkus</groupId>
                 <artifactId>camel-quarkus-infinispan-deployment</artifactId>
                 <version>${camel-quarkus.version}</version>
             </dependency>
@@ -4464,6 +4879,16 @@
             <dependency>
                 <groupId>org.apache.camel.quarkus</groupId>
                 <artifactId>camel-quarkus-irc-deployment</artifactId>
+                <version>${camel-quarkus.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.camel.quarkus</groupId>
+                <artifactId>camel-quarkus-iso8583</artifactId>
+                <version>${camel-quarkus.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.camel.quarkus</groupId>
+                <artifactId>camel-quarkus-iso8583-deployment</artifactId>
                 <version>${camel-quarkus.version}</version>
             </dependency>
             <dependency>
@@ -4788,6 +5213,11 @@
             </dependency>
             <dependency>
                 <groupId>org.apache.camel.quarkus</groupId>
+                <artifactId>camel-quarkus-junit</artifactId>
+                <version>${camel-quarkus.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.camel.quarkus</groupId>
                 <artifactId>camel-quarkus-junit5</artifactId>
                 <version>${camel-quarkus.version}</version>
             </dependency>
@@ -4809,6 +5239,16 @@
             <dependency>
                 <groupId>org.apache.camel.quarkus</groupId>
                 <artifactId>camel-quarkus-kamelet-deployment</artifactId>
+                <version>${camel-quarkus.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.camel.quarkus</groupId>
+                <artifactId>camel-quarkus-keycloak</artifactId>
+                <version>${camel-quarkus.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.camel.quarkus</groupId>
+                <artifactId>camel-quarkus-keycloak-deployment</artifactId>
                 <version>${camel-quarkus.version}</version>
             </dependency>
             <dependency>
@@ -4878,7 +5318,12 @@
             </dependency>
             <dependency>
                 <groupId>org.apache.camel.quarkus</groupId>
-                <artifactId>camel-quarkus-langchain4j</artifactId>
+                <artifactId>camel-quarkus-langchain4j-agent</artifactId>
+                <version>${camel-quarkus.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.camel.quarkus</groupId>
+                <artifactId>camel-quarkus-langchain4j-agent-deployment</artifactId>
                 <version>${camel-quarkus.version}</version>
             </dependency>
             <dependency>
@@ -4893,17 +5338,22 @@
             </dependency>
             <dependency>
                 <groupId>org.apache.camel.quarkus</groupId>
-                <artifactId>camel-quarkus-langchain4j-deployment</artifactId>
-                <version>${camel-quarkus.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.camel.quarkus</groupId>
                 <artifactId>camel-quarkus-langchain4j-embeddings</artifactId>
                 <version>${camel-quarkus.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.apache.camel.quarkus</groupId>
                 <artifactId>camel-quarkus-langchain4j-embeddings-deployment</artifactId>
+                <version>${camel-quarkus.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.camel.quarkus</groupId>
+                <artifactId>camel-quarkus-langchain4j-embeddingstore</artifactId>
+                <version>${camel-quarkus.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.camel.quarkus</groupId>
+                <artifactId>camel-quarkus-langchain4j-embeddingstore-deployment</artifactId>
                 <version>${camel-quarkus.version}</version>
             </dependency>
             <dependency>
@@ -5078,6 +5528,16 @@
             </dependency>
             <dependency>
                 <groupId>org.apache.camel.quarkus</groupId>
+                <artifactId>camel-quarkus-mdc</artifactId>
+                <version>${camel-quarkus.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.camel.quarkus</groupId>
+                <artifactId>camel-quarkus-mdc-deployment</artifactId>
+                <version>${camel-quarkus.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.camel.quarkus</groupId>
                 <artifactId>camel-quarkus-micrometer</artifactId>
                 <version>${camel-quarkus.version}</version>
             </dependency>
@@ -5108,12 +5568,32 @@
             </dependency>
             <dependency>
                 <groupId>org.apache.camel.quarkus</groupId>
+                <artifactId>camel-quarkus-milo</artifactId>
+                <version>${camel-quarkus.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.camel.quarkus</groupId>
+                <artifactId>camel-quarkus-milo-deployment</artifactId>
+                <version>${camel-quarkus.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.camel.quarkus</groupId>
                 <artifactId>camel-quarkus-milvus</artifactId>
                 <version>${camel-quarkus.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.apache.camel.quarkus</groupId>
                 <artifactId>camel-quarkus-milvus-deployment</artifactId>
+                <version>${camel-quarkus.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.camel.quarkus</groupId>
+                <artifactId>camel-quarkus-mina-sftp</artifactId>
+                <version>${camel-quarkus.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.camel.quarkus</groupId>
+                <artifactId>camel-quarkus-mina-sftp-deployment</artifactId>
                 <version>${camel-quarkus.version}</version>
             </dependency>
             <dependency>
@@ -5248,6 +5728,16 @@
             </dependency>
             <dependency>
                 <groupId>org.apache.camel.quarkus</groupId>
+                <artifactId>camel-quarkus-oauth</artifactId>
+                <version>${camel-quarkus.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.camel.quarkus</groupId>
+                <artifactId>camel-quarkus-oauth-deployment</artifactId>
+                <version>${camel-quarkus.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.camel.quarkus</groupId>
                 <artifactId>camel-quarkus-observability-services</artifactId>
                 <version>${camel-quarkus.version}</version>
             </dependency>
@@ -5274,6 +5764,26 @@
             <dependency>
                 <groupId>org.apache.camel.quarkus</groupId>
                 <artifactId>camel-quarkus-olingo4-deployment</artifactId>
+                <version>${camel-quarkus.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.camel.quarkus</groupId>
+                <artifactId>camel-quarkus-once</artifactId>
+                <version>${camel-quarkus.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.camel.quarkus</groupId>
+                <artifactId>camel-quarkus-once-deployment</artifactId>
+                <version>${camel-quarkus.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.camel.quarkus</groupId>
+                <artifactId>camel-quarkus-openai</artifactId>
+                <version>${camel-quarkus.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.camel.quarkus</groupId>
+                <artifactId>camel-quarkus-openai-deployment</artifactId>
                 <version>${camel-quarkus.version}</version>
             </dependency>
             <dependency>
@@ -5408,6 +5918,16 @@
             </dependency>
             <dependency>
                 <groupId>org.apache.camel.quarkus</groupId>
+                <artifactId>camel-quarkus-pqc</artifactId>
+                <version>${camel-quarkus.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.camel.quarkus</groupId>
+                <artifactId>camel-quarkus-pqc-deployment</artifactId>
+                <version>${camel-quarkus.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.camel.quarkus</groupId>
                 <artifactId>camel-quarkus-printer</artifactId>
                 <version>${camel-quarkus.version}</version>
             </dependency>
@@ -5444,6 +5964,16 @@
             <dependency>
                 <groupId>org.apache.camel.quarkus</groupId>
                 <artifactId>camel-quarkus-pulsar-deployment</artifactId>
+                <version>${camel-quarkus.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.camel.quarkus</groupId>
+                <artifactId>camel-quarkus-python</artifactId>
+                <version>${camel-quarkus.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.camel.quarkus</groupId>
+                <artifactId>camel-quarkus-python-deployment</artifactId>
                 <version>${camel-quarkus.version}</version>
             </dependency>
             <dependency>
@@ -6063,6 +6593,16 @@
             </dependency>
             <dependency>
                 <groupId>org.apache.camel.quarkus</groupId>
+                <artifactId>camel-quarkus-support-jaxb</artifactId>
+                <version>${camel-quarkus.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.camel.quarkus</groupId>
+                <artifactId>camel-quarkus-support-jaxb-deployment</artifactId>
+                <version>${camel-quarkus.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.camel.quarkus</groupId>
                 <artifactId>camel-quarkus-support-jdbc</artifactId>
                 <version>${camel-quarkus.version}</version>
             </dependency>
@@ -6079,6 +6619,16 @@
             <dependency>
                 <groupId>org.apache.camel.quarkus</groupId>
                 <artifactId>camel-quarkus-support-jetty-deployment</artifactId>
+                <version>${camel-quarkus.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.camel.quarkus</groupId>
+                <artifactId>camel-quarkus-support-langchain4j</artifactId>
+                <version>${camel-quarkus.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.camel.quarkus</groupId>
+                <artifactId>camel-quarkus-support-langchain4j-deployment</artifactId>
                 <version>${camel-quarkus.version}</version>
             </dependency>
             <dependency>
@@ -6374,6 +6924,16 @@
             <dependency>
                 <groupId>org.apache.camel.quarkus</groupId>
                 <artifactId>camel-quarkus-weather-deployment</artifactId>
+                <version>${camel-quarkus.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.camel.quarkus</groupId>
+                <artifactId>camel-quarkus-weaviate</artifactId>
+                <version>${camel-quarkus.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.camel.quarkus</groupId>
+                <artifactId>camel-quarkus-weaviate-deployment</artifactId>
                 <version>${camel-quarkus.version}</version>
             </dependency>
             <dependency>
@@ -6676,6 +7236,16 @@
                 <groupId>ca.uhn.hapi.fhir</groupId>
                 <artifactId>hapi-fhir-structures-r4</artifactId>
                 <version>${hapi-fhir.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>org.glassfish</groupId>
+                        <artifactId>jakarta.json</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.slf4j</groupId>
+                        <artifactId>jcl-over-slf4j</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
             <dependency>
                 <groupId>ca.uhn.hapi.fhir</groupId>
@@ -6711,32 +7281,6 @@
                 <groupId>ca.uhn.hapi.fhir</groupId>
                 <artifactId>org.hl7.fhir.utilities</artifactId>
                 <version>${hapi-fhir-core.version}</version>
-            </dependency>
-            <!-- TODO: Remove this when azure-core-http-vertx is part of azure-sdk-bom https://github.com/apache/camel-quarkus/issues/4181 -->
-            <dependency>
-                <groupId>com.azure</groupId>
-                <artifactId>azure-core-http-vertx</artifactId>
-                <version>${azure-core-http-vertx.version}</version>
-            </dependency>
-            <!-- TODO: https://github.com/datastax/cassandra-quarkus/issues/245 -->
-            <dependency>
-                <groupId>com.datastax.oss</groupId>
-                <artifactId>java-driver-query-builder</artifactId>
-                <version>${java-driver-query-builder.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <groupId>com.github.spotbugs</groupId>
-                        <artifactId>spotbugs-annotations</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>com.github.stephenc.jcip</groupId>
-                        <artifactId>jcip-annotations</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>com.google.code.findbugs</groupId>
-                        <artifactId>jsr305</artifactId>
-                    </exclusion>
-                </exclusions>
             </dependency>
             <dependency>
                 <groupId>com.dylibso.chicory</groupId>
@@ -6791,8 +7335,18 @@
             </dependency>
             <dependency>
                 <groupId>com.google.api</groupId>
+                <artifactId>api-common</artifactId>
+                <version>${google-cloud-api-common.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.google.api</groupId>
                 <artifactId>gax-httpjson</artifactId>
                 <version>${google-gax-httpjson.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.google.api-client</groupId>
+                <artifactId>google-api-client</artifactId>
+                <version>${google-api-client.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.google.auth</groupId>
@@ -6836,6 +7390,10 @@
                         <artifactId>commons-logging</artifactId>
                     </exclusion>
                     <exclusion>
+                        <groupId>io.grpc</groupId>
+                        <artifactId>grpc-netty-shaded</artifactId>
+                    </exclusion>
+                    <exclusion>
                         <groupId>org.checkerframework</groupId>
                         <artifactId>checker-qual</artifactId>
                     </exclusion>
@@ -6869,6 +7427,10 @@
                     <exclusion>
                         <groupId>commons-logging</groupId>
                         <artifactId>commons-logging</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>io.grpc</groupId>
+                        <artifactId>grpc-netty-shaded</artifactId>
                     </exclusion>
                     <exclusion>
                         <groupId>org.checkerframework</groupId>
@@ -6906,6 +7468,10 @@
                         <artifactId>commons-logging</artifactId>
                     </exclusion>
                     <exclusion>
+                        <groupId>io.grpc</groupId>
+                        <artifactId>grpc-netty-shaded</artifactId>
+                    </exclusion>
+                    <exclusion>
                         <groupId>org.checkerframework</groupId>
                         <artifactId>checker-qual</artifactId>
                     </exclusion>
@@ -6934,11 +7500,6 @@
                 <groupId>com.google.re2j</groupId>
                 <artifactId>re2j</artifactId>
                 <version>${re2j.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.ibm.cloud</groupId>
-                <artifactId>sdk-core</artifactId>
-                <version>${ibm.java-sdk-core.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.ibm.icu</groupId>
@@ -7000,6 +7561,11 @@
                 <groupId>com.squareup.okhttp3</groupId>
                 <artifactId>okhttp</artifactId>
                 <version>${okhttp.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.squareup.okhttp3</groupId>
+                <artifactId>okhttp-jvm</artifactId>
+                <version>${okhttp-jvm.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.squareup.okio</groupId>
@@ -7071,13 +7637,8 @@
             </dependency>
             <dependency>
                 <groupId>dev.langchain4j</groupId>
-                <artifactId>langchain4j</artifactId>
-                <version>${langchain4j.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>dev.langchain4j</groupId>
-                <artifactId>langchain4j-core</artifactId>
-                <version>${langchain4j.version}</version>
+                <artifactId>langchain4j-embeddings</artifactId>
+                <version>${langchain4j-beta.version}</version>
             </dependency>
             <dependency>
                 <groupId>io.dropwizard.metrics</groupId>
@@ -7122,11 +7683,6 @@
                 <version>${opentelemetry-semconv-legacy.version}</version>
             </dependency>
             <dependency>
-                <groupId>io.perfmark</groupId>
-                <artifactId>perfmark-api</artifactId>
-                <version>${perfmark-api.version}</version>
-            </dependency>
-            <dependency>
                 <artifactId>reactor-core</artifactId>
                 <groupId>io.projectreactor</groupId>
                 <version>${reactor-core.version}</version>
@@ -7137,19 +7693,19 @@
                 <version>${reactor-netty.version}</version>
             </dependency>
             <dependency>
-                <groupId>io.quarkiverse.freemarker</groupId>
-                <artifactId>quarkus-freemarker</artifactId>
-                <version>${quarkiverse-freemarker.version}</version>
+                <groupId>io.quarkiverse.batik</groupId>
+                <artifactId>quarkus-batik</artifactId>
+                <version>${quarkiverse-batik.version}</version>
             </dependency>
             <dependency>
-                <groupId>io.quarkiverse.freemarker</groupId>
-                <artifactId>quarkus-freemarker-deployment</artifactId>
-                <version>${quarkiverse-freemarker.version}</version>
+                <groupId>io.quarkiverse.batik</groupId>
+                <artifactId>quarkus-batik-deployment</artifactId>
+                <version>${quarkiverse-batik.version}</version>
             </dependency>
             <dependency>
-                <groupId>io.quarkiverse.fury</groupId>
-                <artifactId>quarkus-fury</artifactId>
-                <version>${quarkiverse-fury.version}</version>
+                <groupId>io.quarkiverse.fory</groupId>
+                <artifactId>quarkus-fory</artifactId>
+                <version>${quarkiverse-fory.version}</version>
                 <exclusions>
                     <exclusion>
                         <groupId>org.checkerframework</groupId>
@@ -7158,9 +7714,19 @@
                 </exclusions>
             </dependency>
             <dependency>
-                <groupId>io.quarkiverse.fury</groupId>
-                <artifactId>quarkus-fury-deployment</artifactId>
-                <version>${quarkiverse-fury.version}</version>
+                <groupId>io.quarkiverse.fory</groupId>
+                <artifactId>quarkus-fory-deployment</artifactId>
+                <version>${quarkiverse-fory.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.quarkiverse.freemarker</groupId>
+                <artifactId>quarkus-freemarker</artifactId>
+                <version>${quarkiverse-freemarker.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.quarkiverse.freemarker</groupId>
+                <artifactId>quarkus-freemarker-deployment</artifactId>
+                <version>${quarkiverse-freemarker.version}</version>
             </dependency>
             <dependency>
                 <groupId>io.quarkiverse.groovy</groupId>
@@ -7191,16 +7757,6 @@
                 <groupId>io.quarkiverse.jsch</groupId>
                 <artifactId>quarkus-jsch-deployment</artifactId>
                 <version>${quarkiverse-jsch.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>io.quarkiverse.langchain4j</groupId>
-                <artifactId>quarkus-langchain4j-core</artifactId>
-                <version>${quarkiverse-langchain4j.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>io.quarkiverse.langchain4j</groupId>
-                <artifactId>quarkus-langchain4j-core-deployment</artifactId>
-                <version>${quarkiverse-langchain4j.version}</version>
             </dependency>
             <dependency>
                 <groupId>io.quarkiverse.messaginghub</groupId>
@@ -7246,11 +7802,6 @@
                 <groupId>io.reactivex.rxjava3</groupId>
                 <artifactId>rxjava</artifactId>
                 <version>${rxjava3.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>io.smallrye.reactive</groupId>
-                <artifactId>smallrye-reactive-messaging-camel</artifactId>
-                <version>${smallrye.reactive.messaging.camel.version}</version>
             </dependency>
             <dependency>
                 <groupId>io.swagger.codegen.v3</groupId>
@@ -7345,19 +7896,24 @@
                 <version>${jodatime.version}</version>
             </dependency>
             <dependency>
+                <groupId>net.engio</groupId>
+                <artifactId>mbassador</artifactId>
+                <version>${mbassador.version}</version>
+            </dependency>
+            <dependency>
                 <groupId>net.i2p.crypto</groupId>
                 <artifactId>eddsa</artifactId>
                 <version>${eddsa.version}</version>
             </dependency>
             <dependency>
-                <groupId>net.java.dev.jna</groupId>
-                <artifactId>jna-platform</artifactId>
-                <version>${jna-platform.version}</version>
-            </dependency>
-            <dependency>
                 <groupId>net.minidev</groupId>
                 <artifactId>json-smart</artifactId>
                 <version>${json-smart.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>net.sf.saxon</groupId>
+                <artifactId>Saxon-HE</artifactId>
+                <version>${saxon.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.antlr</groupId>
@@ -7375,9 +7931,38 @@
                 <version>${avro.version}</version>
             </dependency>
             <dependency>
+                <groupId>org.apache.camel.kamelets</groupId>
+                <artifactId>camel-kamelets</artifactId>
+                <version>${camel-kamelets.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.cassandra</groupId>
+                <artifactId>java-driver-query-builder</artifactId>
+                <version>${java-driver-query-builder.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>com.github.spotbugs</groupId>
+                        <artifactId>spotbugs-annotations</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>com.github.stephenc.jcip</groupId>
+                        <artifactId>jcip-annotations</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>com.google.code.findbugs</groupId>
+                        <artifactId>jsr305</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+            <dependency>
                 <groupId>org.apache.commons</groupId>
                 <artifactId>commons-collections4</artifactId>
                 <version>${commons-collections4.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-net</artifactId>
+                <version>${commons-net.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.apache.cxf</groupId>
@@ -7437,6 +8022,17 @@
             </dependency>
             <dependency>
                 <groupId>org.apache.kafka</groupId>
+                <artifactId>connect-json</artifactId>
+                <version>${kafka.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>org.lz4</groupId>
+                        <artifactId>lz4-java</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.kafka</groupId>
                 <artifactId>connect-runtime</artifactId>
                 <version>${kafka.version}</version>
                 <exclusions>
@@ -7459,6 +8055,10 @@
                     <exclusion>
                         <groupId>org.eclipse.jetty</groupId>
                         <artifactId>jetty-servlet</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.lz4</groupId>
+                        <artifactId>lz4-java</artifactId>
                     </exclusion>
                     <exclusion>
                         <groupId>org.slf4j</groupId>
@@ -7527,26 +8127,6 @@
                 <groupId>org.apache.zookeeper</groupId>
                 <artifactId>zookeeper-jute</artifactId>
                 <version>${zookeeper.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.bouncycastle</groupId>
-                <artifactId>bcmail-jdk18on</artifactId>
-                <version>${bouncycastle.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.bouncycastle</groupId>
-                <artifactId>bcpg-jdk18on</artifactId>
-                <version>${bouncycastle.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.bouncycastle</groupId>
-                <artifactId>bcutil-jdk18on</artifactId>
-                <version>${bouncycastle.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.eclipse.angus</groupId>
-                <artifactId>angus-mail</artifactId>
-                <version>${angus-mail.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.graalvm.js</groupId>
@@ -7633,6 +8213,11 @@
                 <groupId>org.mapstruct</groupId>
                 <artifactId>mapstruct-processor</artifactId>
                 <version>${mapstruct.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.mozilla</groupId>
+                <artifactId>rhino</artifactId>
+                <version>${rhino.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.mvel</groupId>
@@ -7871,6 +8456,46 @@
                 <artifactId>aws-crt</artifactId>
                 <version>${awscrt.version}</version>
             </dependency>
+            <!-- TODO: Remove this https://github.com/apache/camel-quarkus/issues/7812 -->
+            <dependency>
+                <groupId>software.amazon.kinesis</groupId>
+                <artifactId>amazon-kinesis-client</artifactId>
+                <version>${amazon-kinesis-client.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>com.google.code.findbugs</groupId>
+                        <artifactId>jsr305</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>commons-logging</groupId>
+                        <artifactId>commons-logging</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>io.github.classgraph</groupId>
+                        <artifactId>classgraph</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>javax.validation</groupId>
+                        <artifactId>validation-api</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.apache.kafka</groupId>
+                        <artifactId>kafka-clients</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.checkerframework</groupId>
+                        <artifactId>checker-qual</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.jetbrains.kotlin</groupId>
+                        <artifactId>*</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.jetbrains.kotlinx</groupId>
+                        <artifactId>*</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
             <dependency>
                 <groupId>xalan</groupId>
                 <artifactId>xalan</artifactId>
@@ -7918,6 +8543,7 @@
                                 <!-- entries that our extensions need. Here we define the set of our artifacts -->
                                 <!-- whose dependencies we want to cover in the flattened BOM -->
                                 <resolutionEntryPointInclude>org.apache.camel.quarkus:*</resolutionEntryPointInclude>
+                                <resolutionEntryPointInclude>org.apache.camel.kamelets:*</resolutionEntryPointInclude>
                                 <resolutionEntryPointInclude>ca.uhn.hapi:*</resolutionEntryPointInclude>
                                 <resolutionEntryPointInclude>io.quarkiverse.cxf:*</resolutionEntryPointInclude>
                                 <resolutionEntryPointInclude>io.quarkiverse.minio:minio-native</resolutionEntryPointInclude>
@@ -7942,6 +8568,7 @@
                                 </bannedDependencyResource>
                                 <bannedDependencyResource>
                                     <location>${maven.multiModuleProjectDirectory}/tooling/enforcer-rules/camel-quarkus-banned-dependencies.xml</location>
+                                    <xsltLocation>${project.build.directory}/enforcer-rules/allow-findbugs.xsl</xsltLocation>
                                 </bannedDependencyResource>
                                 <bannedDependencyResource>
                                     <location>${maven.multiModuleProjectDirectory}/tooling/enforcer-rules/camel-quarkus-banned-dependencies-spring.xml</location>
@@ -7980,15 +8607,15 @@
                                 </autogeneratedBomEntryTransformation>
                                 <autogeneratedBomEntryTransformation>
                                     <gavPattern>org.apache.kafka:connect-api</gavPattern>
-                                    <addExclusions>javax.ws.rs:javax.ws.rs-api</addExclusions>
+                                    <addExclusions>javax.ws.rs:javax.ws.rs-api,org.lz4:lz4-java</addExclusions>
                                 </autogeneratedBomEntryTransformation>
                                 <autogeneratedBomEntryTransformation>
                                     <gavPattern>software.amazon.awssdk:apache-client</gavPattern>
                                     <addExclusions>commons-logging:commons-logging</addExclusions>
                                 </autogeneratedBomEntryTransformation>
                                 <autogeneratedBomEntryTransformation>
-                                    <gavPattern>org.apache.wss4j:wss4j-ws-security-common</gavPattern>
-                                    <addExclusions>com.google.code.findbugs:jsr305</addExclusions>
+                                    <gavPattern>com.datastax.oss.quarkus:cassandra-quarkus-client</gavPattern>
+                                    <addExclusions>com.github.spotbugs:spotbugs-annotations,com.github.stephenc.jcip:jcip-annotations</addExclusions>
                                 </autogeneratedBomEntryTransformation>
                             </autogeneratedBomEntryTransformations>
                         </configuration>
@@ -8011,4 +8638,38 @@
             </releases>
         </repository>
     </repositories>
+    <profiles>
+        <profile>
+            <id>full</id>
+            <activation>
+                <property>
+                    <name>!quickly</name>
+                </property>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.l2x6.cq</groupId>
+                        <artifactId>cq-maven-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <!-- Fails the build if there are overlaps between our BOM and Quarkus BOM -->
+                                <id>bom-overlaps</id>
+                                <goals>
+                                    <goal>bom-overlaps</goal>
+                                </goals>
+                                <phase>test</phase><!-- after process-resources where we flatten the BOM -->
+                                <configuration>
+                                    <baseBomPath>${project.basedir}/src/main/generated/flattened-reduced-pom.xml</baseBomPath>
+                                    <ignoredOverlaps>
+                                        <ignoredOverlap>org.glassfish.jaxb:jaxb-runtime</ignoredOverlap><!-- Comes from quarkus-cxf-bom -->
+                                    </ignoredOverlaps>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 </project>

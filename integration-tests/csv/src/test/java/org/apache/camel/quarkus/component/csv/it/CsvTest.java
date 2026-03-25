@@ -19,14 +19,12 @@ package org.apache.camel.quarkus.component.csv.it;
 import io.quarkus.test.junit.QuarkusTest;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import static org.hamcrest.Matchers.is;
 
 @QuarkusTest
 class CsvTest {
-
     @Test
     public void json2csv() {
         RestAssured.given() //
@@ -40,7 +38,6 @@ class CsvTest {
     }
 
     @Test
-    @Disabled //https://github.com/apache/camel-quarkus/issues/6560
     public void csv2json() {
         RestAssured.given() //
                 .contentType(ContentType.TEXT)
@@ -52,4 +49,15 @@ class CsvTest {
                 .body(is("[[\"Melwah\",\"Camelus Dromedarius\"],[\"Al Hamra\",\"Camelus Dromedarius\"]]"));
     }
 
+    @Test
+    public void csvWithAdditionalWhitespace2json() {
+        RestAssured.given()
+                .contentType(ContentType.TEXT)
+                .accept(ContentType.JSON)
+                .body("One   \r\nTwo   \r\nThree   \r\n")
+                .post("/csv/csv-to-json")
+                .then()
+                .statusCode(200)
+                .body(is("[[\"One\"],[\"Two\"],[\"Three\"]]"));
+    }
 }

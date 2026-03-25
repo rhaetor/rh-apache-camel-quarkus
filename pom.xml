@@ -23,12 +23,12 @@
     <parent>
         <groupId>org.apache.camel</groupId>
         <artifactId>camel-dependencies</artifactId>
-        <version>4.11.0</version>
+        <version>4.18.0</version>
     </parent>
 
     <groupId>org.apache.camel.quarkus</groupId>
     <artifactId>camel-quarkus</artifactId>
-    <version>3.23.0-SNAPSHOT</version>
+    <version>3.35.0-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <name>Camel Quarkus</name>
@@ -39,237 +39,253 @@
     <properties>
 
         <!-- Primary dependencies - maintained manually -->
-        <camel.major.minor>4.11</camel.major.minor> <!-- run after each change: cd docs && mvnd validate -->
+        <camel.major.minor>4.18</camel.major.minor> <!-- run after each change: cd docs && mvnd validate -->
         <camel.version>${camel.major.minor}.0</camel.version>
         <camel.docs.components.version>${camel.major.minor}.x</camel.docs.components.version><!-- the version in Camel's docs/components/antora.yml -->
         <camel.docs.components.xref>${camel.docs.components.version}@components</camel.docs.components.xref><!-- the version in Camel's docs/components/antora.yml -->
         <camel.docs.branch>camel-${camel.major.minor}.x</camel.docs.branch><!-- The stable camel branch on which our Antora docs depends -->
-        <cassandra-quarkus.version>1.2.0</cassandra-quarkus.version><!-- This should be in sync with quarkus-platform https://repo1.maven.org/maven2/com/datastax/oss/quarkus/cassandra-quarkus-bom/ -->
-        <debezium.version>3.1.0.Final</debezium.version> <!-- This should be in sync with quarkus-platform https://github.com/quarkusio/quarkus-platform-->
-        <optaplanner.version>9.37.0.Final</optaplanner.version><!-- This should be in sync with quarkus-platform https://repo1.maven.org/maven2/org/optaplanner/optaplanner-quarkus/ -->
-        <quarkiverse-amazonservices.version>3.5.0</quarkiverse-amazonservices.version><!-- This should be in sync with quarkus-platform https://repo1.maven.org/maven2/io/quarkiverse/amazonservices/quarkus-amazon-services-parent/ -->
-        <quarkiverse-artemis.version>3.8.0</quarkiverse-artemis.version><!-- https://repo1.maven.org/maven2/io/quarkiverse/artemis/quarkus-artemis-parent/ -->
-        <quarkiverse-cxf.version>3.22.0</quarkiverse-cxf.version><!-- This should be in sync with quarkus-platform https://repo1.maven.org/maven2/io/quarkiverse/cxf/quarkus-cxf-parent/ -->
-        <quarkiverse-freemarker.version>1.2.0</quarkiverse-freemarker.version><!-- https://repo1.maven.org/maven2/io/quarkiverse/freemarker/quarkus-freemarker-parent/ -->
-        <quarkiverse-fury.version>0.3.0</quarkiverse-fury.version><!-- https://repo1.maven.org/maven2/io/quarkiverse/fury/quarkus-fury-parent/ -->
-        <quarkiverse-groovy.version>3.22.1</quarkiverse-groovy.version><!-- https://repo1.maven.org/maven2/io/quarkiverse/groovy/quarkus-groovy-parent/ -->
-        <quarkiverse-jackson-jq.version>2.2.0</quarkiverse-jackson-jq.version><!-- https://repo1.maven.org/maven2/io/quarkiverse/jackson-jq/quarkus-jackson-jq-parent/ -->
-        <quarkiverse-jgit.version>3.5.1</quarkiverse-jgit.version><!-- https://repo1.maven.org/maven2/io/quarkiverse/jgit/quarkus-jgit/ -->
-        <quarkiverse-jsch.version>3.0.15</quarkiverse-jsch.version><!-- https://repo1.maven.org/maven2/io/quarkiverse/jsch/quarkus-jsch/ -->
-        <quarkiverse-langchain4j.version>0.23.3</quarkiverse-langchain4j.version><!-- https://repo1.maven.org/maven2/io/quarkiverse/langchain4j/quarkus-langchain4j-parent -->
-        <quarkiverse-micrometer.version>3.3.1</quarkiverse-micrometer.version><!-- https://repo1.maven.org/maven2/io/quarkiverse/micrometer/registry/quarkus-micrometer-registry-jmx/ -->
-        <quarkiverse-minio.version>3.8.3</quarkiverse-minio.version><!-- https://repo1.maven.org/maven2/io/quarkiverse/minio/quarkus-minio-parent/ -->
-        <quarkiverse-mybatis.version>2.4.0</quarkiverse-mybatis.version><!-- https://repo1.maven.org/maven2/io/quarkiverse/mybatis/quarkus-mybatis-parent/ -->
-        <quarkiverse-pooled-jms.version>2.8.0</quarkiverse-pooled-jms.version><!-- https://repo1.maven.org/maven2/io/quarkiverse/messaginghub/quarkus-pooled-jms-parent/ -->
-        <quarkus.version>3.22.0</quarkus.version><!-- https://repo1.maven.org/maven2/io/quarkus/quarkus-bom/ -->
-        <quarkus-hazelcast-client.version>4.0.0</quarkus-hazelcast-client.version><!-- https://repo1.maven.org/maven2/com/hazelcast/quarkus-hazelcast-client-bom/ -->
-        <quarkus-qpid-jms.version>2.8.0</quarkus-qpid-jms.version><!-- This should be in sync with quarkus-platform https://repo1.maven.org/maven2/org/amqphub/quarkus/quarkus-qpid-jms-bom/ -->
+        <camel-kamelets.version>4.18.0</camel-kamelets.version>
+        <cassandra-quarkus.version>1.4.1</cassandra-quarkus.version><!-- This should be in sync with quarkus-platform https://repo1.maven.org/maven2/com/datastax/oss/quarkus/cassandra-quarkus-bom/ -->
+        <debezium.version>3.4.2.Final</debezium.version> <!-- This should be in sync with quarkus-platform https://github.com/quarkusio/quarkus-platform-->
+        <optaplanner.version>10.0.0</optaplanner.version><!-- This should be in sync with quarkus-platform https://repo1.maven.org/maven2/org/optaplanner/optaplanner-quarkus/ -->
+        <quarkiverse-amazonservices.version>3.15.1</quarkiverse-amazonservices.version><!-- This should be in sync with quarkus-platform https://repo1.maven.org/maven2/io/quarkiverse/amazonservices/quarkus-amazon-services-parent/ -->
+        <quarkiverse-artemis.version>3.14.0</quarkiverse-artemis.version><!-- https://repo1.maven.org/maven2/io/quarkiverse/artemis/quarkus-artemis-parent/ -->
+        <quarkiverse-batik.version>1.1.0</quarkiverse-batik.version><!-- https://repo1.maven.org/maven2/io/quarkiverse/batik/quarkus-batik-parent/ -->
+        <quarkiverse-cxf.version>3.33.0</quarkiverse-cxf.version><!-- This should be in sync with quarkus-platform https://repo1.maven.org/maven2/io/quarkiverse/cxf/quarkus-cxf-parent/ -->
+        <quarkiverse-freemarker.version>1.3.0</quarkiverse-freemarker.version><!-- https://repo1.maven.org/maven2/io/quarkiverse/freemarker/quarkus-freemarker-parent/ -->
+        <quarkiverse-fory.version>0.5.0</quarkiverse-fory.version><!-- https://repo1.maven.org/maven2/io/quarkiverse/fury/quarkus-fury-parent/ -->
+        <quarkiverse-groovy.version>3.34.0</quarkiverse-groovy.version><!-- https://repo1.maven.org/maven2/io/quarkiverse/groovy/quarkus-groovy-parent/ -->
+        <quarkiverse-jackson-jq.version>2.4.0</quarkiverse-jackson-jq.version><!-- https://repo1.maven.org/maven2/io/quarkiverse/jackson-jq/quarkus-jackson-jq-parent/ -->
+        <quarkiverse-jgit.version>3.6.2</quarkiverse-jgit.version><!-- https://repo1.maven.org/maven2/io/quarkiverse/jgit/quarkus-jgit/ -->
+        <quarkiverse-jsch.version>3.1.2</quarkiverse-jsch.version><!-- https://repo1.maven.org/maven2/io/quarkiverse/jsch/quarkus-jsch/ -->
+        <quarkiverse-langchain4j.version>1.8.2</quarkiverse-langchain4j.version><!-- https://repo1.maven.org/maven2/io/quarkiverse/langchain4j/quarkus-langchain4j-parent -->
+        <quarkiverse-micrometer.version>3.4.1</quarkiverse-micrometer.version><!-- https://repo1.maven.org/maven2/io/quarkiverse/micrometer/registry/quarkus-micrometer-registry-jmx/ -->
+        <quarkiverse-minio.version>3.8.6</quarkiverse-minio.version><!-- https://repo1.maven.org/maven2/io/quarkiverse/minio/quarkus-minio-parent/ -->
+        <quarkiverse-mybatis.version>2.4.2</quarkiverse-mybatis.version><!-- https://repo1.maven.org/maven2/io/quarkiverse/mybatis/quarkus-mybatis-parent/ -->
+        <quarkiverse-pooled-jms.version>2.10.0</quarkiverse-pooled-jms.version><!-- https://repo1.maven.org/maven2/io/quarkiverse/messaginghub/quarkus-pooled-jms-parent/ -->
+        <quarkus.version>3.34.1</quarkus.version><!-- https://repo1.maven.org/maven2/io/quarkus/quarkus-bom/ -->
+        <quarkus-hazelcast-client.version>4.1.0</quarkus-hazelcast-client.version><!-- https://repo1.maven.org/maven2/com/hazelcast/quarkus-hazelcast-client-bom/ -->
+        <quarkus-qpid-jms.version>2.12.0</quarkus-qpid-jms.version><!-- This should be in sync with quarkus-platform https://repo1.maven.org/maven2/org/amqphub/quarkus/quarkus-qpid-jms-bom/ -->
 
         <!-- Compile dependency versions (keep sorted alphabetically) -->
         <!-- Items annotated with @sync can be updated by running mvn cq:sync-versions -N -e -->
-        <aalto-xml.version>1.3.3</aalto-xml.version><!-- @sync org.smooks:smooks-core:${smooks-version} dep:com.fasterxml:aalto-xml -->
-        <angus-mail.version>${angus-mail-version}</angus-mail.version>
+        <aalto-xml.version>1.3.3</aalto-xml.version><!-- @sync org.smooks:smooks-core:${smooks.version} dep:com.fasterxml:aalto-xml -->
+        <amazon-kinesis-client.version>3.1.3</amazon-kinesis-client.version><!-- TODO: remove this https://github.com/apache/camel-quarkus/issues/7812 -->
         <antlr3.version>3.5.2</antlr3.version><!-- Spark, Stringtemplate and probably others -->
         <audience-annotations.version>${yetus-audience-annotations-version}</audience-annotations.version>
-        <avro.version>1.12.0</avro.version><!-- @sync io.quarkus:quarkus-bom:${quarkus.version} dep:org.apache.avro:avro -->
-        <awssdk.version>2.31.30</awssdk.version><!-- @sync io.quarkiverse.amazonservices:quarkus-amazon-services-parent:${quarkiverse-amazonservices.version} prop:awssdk.version -->
-        <awscrt.version>0.38.1</awscrt.version><!-- @sync software.amazon.awssdk:aws-sdk-java-pom:${awssdk.version} prop:awscrt.version -->
-        <assertj.version>3.27.3</assertj.version><!-- @sync io.quarkus:quarkus-build-parent:${quarkus.version} prop:assertj.version -->
+        <avro.version>1.12.1</avro.version><!-- @sync io.quarkus:quarkus-bom:${quarkus.version} dep:org.apache.avro:avro -->
+        <awssdk.version>2.42.7</awssdk.version><!-- @sync io.quarkiverse.amazonservices:quarkus-amazon-services-parent:${quarkiverse-amazonservices.version} prop:awssdk.version -->
+        <awscrt.version>0.43.4</awscrt.version><!-- @sync software.amazon.awssdk:aws-sdk-java-pom:${awssdk.version} prop:awscrt.version -->
+        <assertj.version>3.27.7</assertj.version><!-- @sync io.quarkus:quarkus-build-parent:${quarkus.version} prop:assertj.version -->
         <aws-java-sdk.version>1.11.714</aws-java-sdk.version>
         <azure-sdk-bom.version>${azure-sdk-bom-version}</azure-sdk-bom.version>
-        <azure-core.version>1.55.2</azure-core.version><!-- @sync com.azure:azure-sdk-bom:${azure-sdk-bom.version} dep:com.azure:azure-core -->
-        <azure-identity.version>1.15.3</azure-identity.version><!-- @sync com.azure:azure-sdk-bom:${azure-sdk-bom.version} dep:com.azure:azure-identity -->
-        <azure-core-http-vertx.version>1.0.3</azure-core-http-vertx.version> <!-- TODO: https://github.com/apache/camel-quarkus/issues/4181 -->
-        <bouncycastle.version>1.80</bouncycastle.version><!-- @sync io.quarkus:quarkus-bom:${quarkus.version} dep:org.bouncycastle:bcprov-jdk18on -->
-        <caffeine.version>3.2.0</caffeine.version><!-- @sync io.quarkus:quarkus-bom:${quarkus.version} dep:com.github.ben-manes.caffeine:caffeine -->
+        <azure-core.version>1.57.0</azure-core.version><!-- @sync com.azure:azure-sdk-bom:${azure-sdk-bom.version} dep:com.azure:azure-core -->
+        <azure-identity.version>1.18.1</azure-identity.version><!-- @sync com.azure:azure-sdk-bom:${azure-sdk-bom.version} dep:com.azure:azure-identity -->
+        <caffeine.version>3.2.3</caffeine.version><!-- @sync io.quarkus:quarkus-bom:${quarkus.version} dep:com.github.ben-manes.caffeine:caffeine -->
         <chicory.version>${chicory-version}</chicory.version>
         <commons-beanutils.version>${commons-beanutils-version}</commons-beanutils.version>
         <commons-cli.version>1.8.0</commons-cli.version><!-- keep in sync with Quarkus, via quarkus-bootstrap-core -->
         <commons-collections.version>${commons-collections-version}</commons-collections.version>
         <commons-collections4.version>${commons-collections4-version}</commons-collections4.version>
         <commons-exec.version>${commons-exec-version}</commons-exec.version>
+        <commons-net.version>${commons-net-version}</commons-net.version>
         <commons-validator.version>${commons-validator-version}</commons-validator.version>
-        <cxf.version>4.1.1</cxf.version><!-- @sync io.quarkiverse.cxf:quarkus-cxf-parent:${quarkiverse-cxf.version} prop:cxf.version -->
+        <cxf.version>4.1.5</cxf.version><!-- @sync io.quarkiverse.cxf:quarkus-cxf-parent:${quarkiverse-cxf.version} prop:cxf.version -->
         <dfdl-scala.version>2.12.20</dfdl-scala.version>
         <drill-jdbc-all.version>${apache-drill-version}</drill-jdbc-all.version>
         <dropwizard-metrics.version>${metrics-version}</dropwizard-metrics.version>
         <eddsa.version>${eddsa-version}</eddsa.version>
         <eclipse-transformer.version>0.5.0</eclipse-transformer.version>
-        <flink.version>${flink-version}</flink.version>
         <freemarker.version>2.3.34</freemarker.version><!-- @sync io.quarkiverse.freemarker:quarkus-freemarker-parent:${quarkiverse-freemarker.version} prop:freemarker.version -->
         <geny.version>0.6.2</geny.version>
         <github-api.version>1.313</github-api.version><!-- Used in a Groovy script bellow -->
-        <google-auth-library.version>1.29.0</google-auth-library.version><!-- @sync com.google.cloud:google-cloud-pubsub:${google-cloud-pubsub.version} dep:com.google.auth:google-auth-library-oauth2-http -->
-        <google-cloud-bigquery.version>2.43.3</google-cloud-bigquery.version><!--  @sync com.google.cloud:google-cloud-bom:${google-cloud-bom.version} dep:com.google.cloud:google-cloud-bigquery -->
-        <google-cloud-bom.version>0.231.0</google-cloud-bom.version><!-- @sync com.google.cloud:libraries-bom:${google-cloud-libraries-bom.version} dep:com.google.cloud:google-cloud-bom -->
-        <google-cloud-libraries-bom.version>26.50.0</google-cloud-libraries-bom.version><!-- Keep aligned with quarkus-google-cloud-services -->
-        <google-cloud-pubsub-bom.version>1.134.1</google-cloud-pubsub-bom.version><!-- @sync com.google.cloud:google-cloud-bom:${google-cloud-bom.version} dep:com.google.cloud:google-cloud-pubsub-bom -->
-        <google-cloud-pubsub.version>1.134.1</google-cloud-pubsub.version><!-- @sync com.google.cloud:google-cloud-pubsub-bom:${google-cloud-pubsub-bom.version} dep:com.google.cloud:google-cloud-pubsub -->
-        <google-cloud-storage-bom.version>2.44.1</google-cloud-storage-bom.version><!-- @sync com.google.cloud:google-cloud-bom:${google-cloud-bom.version} dep:com.google.cloud:google-cloud-storage-bom -->
-        <google-cloud-storage.version>2.44.1</google-cloud-storage.version><!-- @sync com.google.cloud:google-cloud-storage-bom:${google-cloud-storage-bom.version} dep:com.google.cloud:google-cloud-storage -->
-        <google-gax-httpjson.version>2.57.0</google-gax-httpjson.version><!-- @sync com.google.cloud:google-cloud-pubsub:${google-cloud-pubsub.version} dep:com.google.api:gax-httpjson -->
-        <google-oauth-client.version>1.36.0</google-oauth-client.version><!-- @sync com.google.cloud:google-cloud-bigquery:${google-cloud-bigquery.version} dep:com.google.oauth-client:google-oauth-client -->
-        <graalvm.version>23.1.2</graalvm.version><!-- @sync io.quarkus:quarkus-bom:${quarkus.version} dep:org.graalvm.sdk:graal-sdk -->
+        <google-api-client.version>2.7.2</google-api-client.version><!-- @sync com.google.cloud:google-cloud-bigquery:${google-cloud-bigquery.version} dep:com.google.api-client:google-api-client -->
+        <google-auth-library.version>1.42.1</google-auth-library.version><!-- @sync com.google.cloud:google-cloud-pubsub:${google-cloud-pubsub.version} dep:com.google.auth:google-auth-library-oauth2-http -->
+        <google-cloud-api-common.version>2.57.1</google-cloud-api-common.version><!-- @sync com.google.cloud:google-cloud-pubsub:${google-cloud-pubsub.version} dep:com.google.api:api-common -->
+        <google-cloud-bigquery.version>2.59.0</google-cloud-bigquery.version><!--  @sync com.google.cloud:google-cloud-bom:${google-cloud-bom.version} dep:com.google.cloud:google-cloud-bigquery -->
+        <google-cloud-bom.version>0.257.0</google-cloud-bom.version><!-- @sync com.google.cloud:libraries-bom:${google-cloud-libraries-bom.version} dep:com.google.cloud:google-cloud-bom -->
+        <google-cloud-libraries-bom.version>26.76.0</google-cloud-libraries-bom.version><!-- Keep aligned with quarkus-google-cloud-services -->
+        <google-cloud-pubsub-bom.version>1.148.0</google-cloud-pubsub-bom.version><!-- @sync com.google.cloud:google-cloud-bom:${google-cloud-bom.version} dep:com.google.cloud:google-cloud-pubsub-bom -->
+        <google-cloud-pubsub.version>1.148.0</google-cloud-pubsub.version><!-- @sync com.google.cloud:google-cloud-pubsub-bom:${google-cloud-pubsub-bom.version} dep:com.google.cloud:google-cloud-pubsub -->
+        <google-cloud-storage-bom.version>2.63.0</google-cloud-storage-bom.version><!-- @sync com.google.cloud:google-cloud-bom:${google-cloud-bom.version} dep:com.google.cloud:google-cloud-storage-bom -->
+        <google-cloud-storage.version>2.63.0</google-cloud-storage.version><!-- @sync com.google.cloud:google-cloud-storage-bom:${google-cloud-storage-bom.version} dep:com.google.cloud:google-cloud-storage -->
+        <google-gax-httpjson.version>2.74.1</google-gax-httpjson.version><!-- @sync com.google.cloud:google-cloud-pubsub:${google-cloud-pubsub.version} dep:com.google.api:gax-httpjson -->
+        <google-oauth-client.version>1.39.0</google-oauth-client.version><!-- @sync com.google.cloud:google-cloud-bigquery:${google-cloud-bigquery.version} dep:com.google.oauth-client:google-oauth-client -->
+        <graalvm.version>23.1.2</graalvm.version><!-- @sync io.quarkus:quarkus-bom:${quarkus.version} dep:org.graalvm.sdk:nativeimage -->
         <graalvm-docs.version>jdk21</graalvm-docs.version><!-- @sync io.quarkus:quarkus-documentation:${quarkus.version} prop:graal-community.tag-for-documentation -->
-        <groovy.version>4.0.26</groovy.version><!-- @sync io.quarkiverse.groovy:quarkus-groovy-parent:${quarkiverse-groovy.version} prop:groovy.version -->
-        <grpc.version>1.69.1</grpc.version><!-- @sync io.quarkus:quarkus-bom:${quarkus.version} dep:io.grpc:grpc-core -->
+        <groovy.version>4.0.29</groovy.version><!-- @sync io.quarkiverse.groovy:quarkus-groovy-parent:${quarkiverse-groovy.version} prop:groovy.version -->
         <hapi.version>${hapi-version}</hapi.version>
         <hapi-base.version>${hapi-base-version}</hapi-base.version>
         <hapi-fhir.version>${hapi-fhir-version}</hapi-fhir.version>
-        <hapi-fhir-core.version>6.4.0</hapi-fhir-core.version><!-- @sync ca.uhn.hapi.fhir:hapi-fhir:${hapi-fhir.version} prop:fhir_core_version -->
+        <hapi-fhir-core.version>6.6.7</hapi-fhir-core.version><!-- @sync ca.uhn.hapi.fhir:hapi-fhir:${hapi-fhir.version} prop:fhir_core_version -->
         <ibm.java-sdk-core.version>9.23.1</ibm.java-sdk-core.version><!-- Required because of https://github.com/apache/camel-quarkus/issues/7269 -->
-        <ibm.mq.client.version>9.4.2.0</ibm.mq.client.version>
+        <ibm.mq.client.version>9.4.5.0</ibm.mq.client.version>
         <icu4j.version>${icu4j-version}</icu4j.version>
         <influxdb.version>${influx-java-driver-version}</influxdb.version>
         <jakarta.jms-api.version>${jakarta-jms-api-version}</jakarta.jms-api.version>
-        <java-driver-query-builder.version>4.15.0</java-driver-query-builder.version><!-- @sync com.datastax.oss.quarkus:cassandra-quarkus-parent:${cassandra-quarkus.version} prop:datastax-java-driver.version -->
+        <java-driver-query-builder.version>4.19.2</java-driver-query-builder.version><!-- @sync com.datastax.oss.quarkus:cassandra-quarkus-parent:${cassandra-quarkus.version} prop:java-driver.version -->
         <java-json-tools.json-patch.version>${json-patch-version}</java-json-tools.json-patch.version><!-- A replacement for com.github.fge:json-patch -->
         <jodatime.version>${jodatime2-version}</jodatime.version><!-- Mess in transitive dependencies of Splunk -->
         <javassist.version>${javassist-version}</javassist.version><!-- debezium -->
         <jetty.version>${jetty-version}</jetty.version>
         <jira-rest-client.version>${jira-rest-client-api-version}</jira-rest-client.version>
-        <jna-platform.version>5.13.0</jna-platform.version><!-- @sync com.azure:azure-identity:${azure-identity.version} dep:net.java.dev.jna:jna-platform -->
         <jnr-constants.version>0.9.11</jnr-constants.version><!-- Mess in web3j transitive deps -->
         <jnr-ffi.version>2.2.13</jnr-ffi.version><!-- Mess in web3j transitive deps -->
-        <jolokia.version>2.2.9</jolokia.version>
-        <jsch.version>0.2.25</jsch.version><!-- @sync io.quarkiverse.jsch:quarkus-jsch:${quarkiverse-jsch.version} dep:com.github.mwiede:jsch -->
+        <jolokia.version>2.5.1</jolokia.version>
+        <jsch.version>2.27.6</jsch.version><!-- @sync io.quarkiverse.jsch:quarkus-jsch:${quarkiverse-jsch.version} dep:com.github.mwiede:jsch -->
         <json-path.version>${json-path-version}</json-path.version>
         <jedis-client.version>${jedis-client-version}</jedis-client.version>
         <json-smart.version>${json-smart-version}</json-smart.version>
         <jxmpp.version>1.1.0</jxmpp.version><!-- @sync org.apache.camel:camel-xmpp:${camel.version} dep:org.jxmpp:jxmpp-jid -->
-        <kafka.version>3.9.0</kafka.version><!-- @sync io.quarkus:quarkus-bom:${quarkus.version} dep:org.apache.kafka:kafka-clients -->
-        <keycloak.version>26.1.3</keycloak.version><!-- @sync io.quarkus:quarkus-build-parent:${quarkus.version} prop:keycloak.server.version -->
+        <kafka.version>4.1.1</kafka.version><!-- @sync io.quarkus:quarkus-bom:${quarkus.version} dep:org.apache.kafka:kafka-clients -->
+        <keycloak.version>26.5.4</keycloak.version><!-- @sync io.quarkus:quarkus-build-parent:${quarkus.version} prop:keycloak.server.version -->
         <kudu.version>${kudu-version}</kudu.version>
-        <kotlin.version>2.1.20</kotlin.version><!-- @sync io.quarkus:quarkus-bom:${quarkus.version} dep:org.jetbrains.kotlin:kotlin-stdlib -->
+        <kotlin.version>2.3.10</kotlin.version><!-- @sync io.quarkus:quarkus-bom:${quarkus.version} dep:org.jetbrains.kotlin:kotlin-stdlib -->
         <kotlinx.version>1.4.0</kotlinx.version><!--Used by com.squareup.wire:wire-compiler referenced from aws2:kinesis -->
         <kryo.version>2.24.0</kryo.version><!-- @sync org.apache.flink:flink-core:${flink-version} dep:com.esotericsoftware.kryo:kryo -->
-        <langchain4j.version>1.0.0-alpha1</langchain4j.version><!-- @sync io.quarkiverse.langchain4j:quarkus-langchain4j-parent:${quarkiverse-langchain4j.version} prop:langchain4j.version -->
+        <langchain4j.version>1.12.2</langchain4j.version><!-- @sync io.quarkiverse.langchain4j:quarkus-langchain4j-parent:${quarkiverse-langchain4j.version} prop:langchain4j.version -->
+        <langchain4j-beta.version>1.12.2-beta22</langchain4j-beta.version><!-- @sync dev.langchain4j:langchain4j-bom:${langchain4j.version} prop:langchain4j.beta.version -->
         <mapstruct.version>${mapstruct-version}</mapstruct.version>
-        <minio.version>8.5.17</minio.version><!-- @sync io.quarkiverse.minio:quarkus-minio-parent:${quarkiverse-minio.version} prop:minio.version -->
-        <msal4j.version>1.19.0</msal4j.version><!-- @sync com.azure:azure-identity:${azure-identity.version} dep:com.microsoft.azure:msal4j -->
+        <mbassador.version>1.3.0</mbassador.version><!-- @sync com.hierynomus:smbj:${smbj-version} dep:net.engio:mbassador -->
+        <minio.version>8.6.0</minio.version><!-- @sync io.quarkiverse.minio:quarkus-minio-parent:${quarkiverse-minio.version} prop:minio.version -->
+        <msal4j.version>1.23.1</msal4j.version><!-- @sync com.azure:azure-identity:${azure-identity.version} dep:com.microsoft.azure:msal4j -->
         <murmur.version>1.0.0</murmur.version>
         <mvel2.version>2.5.2.Final</mvel2.version><!-- @sync org.apache.camel:camel-dependencies:${camel.version} prop:mvel-version -->
         <mybatis.version>3.5.19</mybatis.version><!-- @sync io.quarkiverse.mybatis:quarkus-parent:${quarkiverse-mybatis.version} prop:mybatis.version -->
-        <oak-jackrabbit-api.version>1.64.0</oak-jackrabbit-api.version><!-- @sync org.apache.jackrabbit:jackrabbit-parent:${jackrabbit-version} prop:oak-jackrabbit-api.version.implemented -->
+        <oak-jackrabbit-api.version>1.88.0</oak-jackrabbit-api.version><!-- @sync org.apache.jackrabbit:jackrabbit-parent:${jackrabbit-version} prop:oak-jackrabbit-api.version.implemented -->
         <okhttp.version>4.12.0</okhttp.version>
-        <okio.version>3.6.0</okio.version><!-- @sync com.squareup.okhttp3:okhttp:${okhttp.version} dep:com.squareup.okio:okio-->
+        <okhttp-jvm.version>5.2.1</okhttp-jvm.version>
+        <okio.version>3.16.1</okio.version><!-- @sync com.squareup.okhttp3:okhttp-jvm:${okhttp-jvm.version} dep:com.squareup.okio:okio-jvm-->
         <opencensus.version>0.31.0</opencensus.version><!-- Mess in Google cloud. Keep in sync with version used in com.google.http-client:google-http-client -->
         <opentelemetry-semconv-legacy.version>1.29.0-alpha</opentelemetry-semconv-legacy.version><!-- Alignment for camel-opentelemetry and google-pubsub -->
         <org.json.version>20240303</org.json.version><!-- Used by amazon-kinesis-client, google-cloud-bigquery and com.ibm.mq.jakarta.client -->
-        <perfmark-api.version>0.27.0</perfmark-api.version><!-- @sync io.grpc:grpc-netty-shaded:${grpc.version} dep:io.perfmark:perfmark-api -->
         <re2j.version>1.7</re2j.version><!-- Used by google-cloud-pubsub and amazon-kinesis-client -->
-        <reactor-core.version>3.4.41</reactor-core.version><!-- @sync com.azure:azure-core:${azure-core.version} dep:io.projectreactor:reactor-core -->
+        <reactor-core.version>3.7.11</reactor-core.version><!-- @sync com.azure:azure-core:${azure-core.version} dep:io.projectreactor:reactor-core -->
         <reactor-netty.version>${reactor-netty-version}</reactor-netty.version>
-        <retrofit.version>2.9.0</retrofit.version><!-- @sync org.influxdb:influxdb-java:${influxdb.version} dep:com.squareup.retrofit2:retrofit -->
+        <retrofit.version>3.0.0</retrofit.version><!-- @sync org.kiwiproject:consul-client:${consul-client-version} prop:retrofit.version -->
+        <rhino.version>1.7.15.1</rhino.version><!-- Used by Apache FOP, to sync with transitive dependencies -->
         <rxjava3.version>3.1.8</rxjava3.version><!-- Used by amazon-kinesis-client and infinispan-client-hotrod-jakarta -->
-        <smallrye.reactive.messaging.camel.version>4.27.0</smallrye.reactive.messaging.camel.version><!-- @sync io.quarkus:quarkus-bom:${quarkus.version} dep:io.smallrye.reactive:smallrye-reactive-messaging-provider -->
-        <smooks.version>${smooks-version}</smooks.version>
-        <snakeyaml.version>2.4</snakeyaml.version><!-- @sync io.quarkus:quarkus-bom:${quarkus.version} dep:org.yaml:snakeyaml -->
+        <saxon.version>${saxon-version}</saxon.version>
+        <smooks-bom.version>${smooks-version}</smooks-bom.version>
+        <smooks.version>2.2.1</smooks.version><!-- @sync org.smooks:smooks-bom:${smooks-bom.version} prop:smooks.version -->
+        <snakeyaml.version>2.6</snakeyaml.version><!-- @sync io.quarkus:quarkus-bom:${quarkus.version} dep:org.yaml:snakeyaml -->
         <snakeyaml-engine.version>${snakeyaml-engine-version}</snakeyaml-engine.version><!-- Resolve conflict between camel-snakeyaml & kubernetes-client -->
         <spring.version>${spring-version}</spring.version>
         <spring.data.redis.version>${spring-data-redis-version}</spring.data.redis.version>
         <swagger.version>${swagger-openapi3-version}</swagger.version>
-        <swagger-codegen.version>3.0.67</swagger-codegen.version><!-- @sync io.swagger.codegen.v3:swagger-codegen-generators:${swagger-codegen-generators.version} prop:swagger-codegen-version -->
-        <swagger-codegen-generators.version>1.0.56</swagger-codegen-generators.version>
+        <swagger-codegen.version>3.0.78</swagger-codegen.version><!-- @sync io.swagger.codegen.v3:swagger-codegen-generators:${swagger-codegen-generators.version} prop:swagger-codegen-version -->
+        <swagger-codegen-generators.version>1.0.60</swagger-codegen-generators.version>
         <swagger-parser.version>${swagger-openapi3-java-parser-version}</swagger-parser.version>
         <tablesaw.version>0.43.1</tablesaw.version>
         <threetenbp.version>1.7.0</threetenbp.version><!-- @sync com.google.cloud:google-cloud-pubsub:${google-cloud-pubsub.version} dep:org.threeten:threetenbp -->
         <xalan.version>2.7.2</xalan.version><!-- Xalan should be removed as is in Camel, but it is not possible. https://github.com/apache/camel-quarkus/issues/4065-->
         <xchange.version>${xchange-version}</xchange.version>
-        <xmlgraphics-commons.version>2.10</xmlgraphics-commons.version><!-- @sync org.apache.xmlgraphics:fop-parent:${fop-version} prop:xmlgraphics.commons.version -->
+        <xmlgraphics-commons.version>2.11</xmlgraphics-commons.version><!-- @sync org.apache.xmlgraphics:fop-parent:${fop-version} prop:xmlgraphics.commons.version -->
         <web3j.version>${web3j-version}</web3j.version>
         <web3j.quorum.version>${web3j-quorum-version}</web3j.quorum.version>
         <zookeeper.version>${zookeeper-version}</zookeeper.version>
-        <zstd-jni.version>1.5.6-4</zstd-jni.version><!-- @sync org.apache.kafka:kafka-clients:${kafka.version} dep:com.github.luben:zstd-jni -->
+        <zstd-jni.version>1.5.6-10</zstd-jni.version><!-- @sync org.apache.kafka:kafka-clients:${kafka.version} dep:com.github.luben:zstd-jni -->
 
         <!-- Test dependency versions (keep sorted alphabetically) -->
         <consul-client.version>${consul-client-version}</consul-client.version>
         <ftpserver.version>${ftpserver-version}</ftpserver.version>
         <hamcrest.version>3.0</hamcrest.version><!-- Awaitility and Wiremock -->
         <htmlunit-driver.version>4.13.0</htmlunit-driver.version>
+        <microsoft.graph.version>6.62.0</microsoft.graph.version>
+        <microsoft.graph.auth.version>0.3.0</microsoft.graph.auth.version>
         <pdfbox.version>${pdfbox-version}</pdfbox.version>
-        <sshd.version>2.12.1</sshd.version><!-- @sync io.quarkus:quarkus-bom:${quarkus.version} dep:org.apache.sshd:sshd-common -->
-        <unboundid-ldapsdk.version>7.0.2</unboundid-ldapsdk.version>
-        <wiremock.version>3.13.0</wiremock.version>
-        <xmlunit.version>2.10.0</xmlunit.version>
+        <sshd.version>2.17.1</sshd.version><!-- @sync io.quarkus:quarkus-bom:${quarkus.version} dep:org.apache.sshd:sshd-common -->
+        <unboundid-ldapsdk.version>7.0.4</unboundid-ldapsdk.version>
+        <wiremock.version>3.13.2</wiremock.version>
+        <xmlunit.version>2.11.0</xmlunit.version>
         <zt-exec.version>1.12</zt-exec.version>
 
         <!-- Tooling dependency versions (keep sorted alphabetically) -->
         <maven-utils.version>0.1.0</maven-utils.version>
 
         <!-- Maven plugin versions (keep sorted alphabetically) -->
-        <cq-plugin.version>4.17.5</cq-plugin.version>
+        <cq-plugin.version>4.21.0</cq-plugin.version>
         <cyclonedx-maven-plugin-version>2.9.1</cyclonedx-maven-plugin-version>
-        <build-helper-maven-plugin.version>3.6.0</build-helper-maven-plugin.version>
-        <exec-maven-plugin.version>3.5.0</exec-maven-plugin.version>
-        <formatter-maven-plugin.version>2.26.0</formatter-maven-plugin.version>
+        <build-helper-maven-plugin.version>3.6.1</build-helper-maven-plugin.version>
+        <exec-maven-plugin.version>3.6.3</exec-maven-plugin.version>
+        <formatter-maven-plugin.version>2.29.0</formatter-maven-plugin.version>
         <gmavenplus-maven-plugin.version>3.0.0</gmavenplus-maven-plugin.version>
-        <impsort-maven-plugin.version>1.12.0</impsort-maven-plugin.version>
-        <jandex-maven-plugin.version>1.2.3</jandex-maven-plugin.version>
-        <keytool-maven-plugin.version>1.7</keytool-maven-plugin.version>
+        <impsort-maven-plugin.version>1.13.0</impsort-maven-plugin.version>
+        <jandex-maven-plugin.version>3.5.3</jandex-maven-plugin.version><!-- @sync io.quarkus:quarkus-build-parent:${quarkus.version} prop:jandex.version -->
+        <keytool-maven-plugin.version>2.0.2</keytool-maven-plugin.version>
         <license-maven-plugin.version>5.0.0</license-maven-plugin.version>
-        <maven-antrun-plugin.version>3.1.0</maven-antrun-plugin.version>
-        <maven-assembly-plugin.version>3.7.1</maven-assembly-plugin.version>
-        <maven-clean-plugin.version>3.4.1</maven-clean-plugin.version>
-        <maven-compiler-plugin.version>3.14.0</maven-compiler-plugin.version>
+        <maven-antrun-plugin.version>3.2.0</maven-antrun-plugin.version>
+        <maven-assembly-plugin.version>3.8.0</maven-assembly-plugin.version>
+        <maven-clean-plugin.version>3.5.0</maven-clean-plugin.version>
+        <maven-compiler-plugin.version>3.15.0</maven-compiler-plugin.version>
         <maven-deploy-plugin.version>3.1.4</maven-deploy-plugin.version>
         <maven-enforcer-plugin.version>3.5.0</maven-enforcer-plugin.version>
-        <maven-gpg-plugin.version>3.2.7</maven-gpg-plugin.version>
+        <maven-gpg-plugin.version>3.2.8</maven-gpg-plugin.version>
         <maven-install-plugin.version>3.1.4</maven-install-plugin.version>
-        <maven-jar-plugin.version>3.4.2</maven-jar-plugin.version>
-        <maven-javadoc-plugin.version>3.11.2</maven-javadoc-plugin.version>
-        <maven-plugin-plugin.version>3.15.1</maven-plugin-plugin.version>
-        <maven-source-plugin.version>3.3.1</maven-source-plugin.version>
-        <maven-release-plugin.version>3.0.1</maven-release-plugin.version>
+        <maven-jar-plugin.version>3.5.0</maven-jar-plugin.version>
+        <maven-javadoc-plugin.version>3.12.0</maven-javadoc-plugin.version>
+        <maven-plugin-plugin.version>3.15.2</maven-plugin-plugin.version>
+        <maven-source-plugin.version>3.4.0</maven-source-plugin.version>
+        <maven-release-plugin.version>3.3.1</maven-release-plugin.version>
         <maven-remote-resources-plugin.version>3.3.0</maven-remote-resources-plugin.version>
-        <maven-resources-plugin.version>3.3.1</maven-resources-plugin.version>
-        <maven-scm-plugin.version>2.1.0</maven-scm-plugin.version>
-        <maven-shade-plugin.version>3.6.0</maven-shade-plugin.version>
-        <maven-surefire-plugin.version>3.5.3</maven-surefire-plugin.version>
+        <maven-resources-plugin.version>3.5.0</maven-resources-plugin.version>
+        <maven-scm-plugin.version>2.2.1</maven-scm-plugin.version>
+        <maven-shade-plugin.version>3.6.2</maven-shade-plugin.version>
+        <maven-surefire-plugin.version>3.5.5</maven-surefire-plugin.version>
         <rpkgtests-maven-plugin.version>1.0.0</rpkgtests-maven-plugin.version>
 
         <!-- Test container image properties -->
-        <activemq.container.image>mirror.gcr.io/rmohr/activemq:5.15.9-alpine</activemq.container.image>
         <arangodb.container.image>mirror.gcr.io/arangodb:3.12.0</arangodb.container.image>
-        <azurite.container.image>mcr.microsoft.com/azure-storage/azurite:3.33.0</azurite.container.image>
+        <azurite.container.image>mcr.microsoft.com/azure-storage/azurite:3.35.0</azurite.container.image>
         <calculator-ws.container.image>quay.io/l2x6/calculator-ws:1.2</calculator-ws.container.image>
         <cassandra.container.image>mirror.gcr.io/cassandra:5.0.2</cassandra.container.image>
-        <consul.container.image>mirror.gcr.io/hashicorp/consul:1.19</consul.container.image>
-        <couchbase.container.image>mirror.gcr.io/couchbase/server:7.2.5</couchbase.container.image>
-        <couchdb.container.image>mirror.gcr.io/couchdb:2.3.1</couchdb.container.image>
+        <consul.container.image>mirror.gcr.io/hashicorp/consul:1.21</consul.container.image>
+        <couchbase.container.image>mirror.gcr.io/couchbase/server:7.6.2</couchbase.container.image>
+        <couchdb.container.image>mirror.gcr.io/couchdb:3.5.0</couchdb.container.image>
+        <cyberark-conjur.container.image>mirror.gcr.io/cyberark/conjur:1.24.0</cyberark-conjur.container.image>
+        <cyberark-conjur-cli.container.image>mirror.gcr.io/cyberark/conjur-cli:9</cyberark-conjur-cli.container.image>
+        <cyberark-nginx.container.image>mirror.gcr.io/nginx:1.29.4-alpine3.23-perl</cyberark-nginx.container.image>
+        <db2.container.image>icr.io/db2_community/db2:12.1.0.0</db2.container.image>
+        <docling.container.image>quay.io/docling-project/docling-serve:v1.9.0</docling.container.image>
         <eclipse-mosquitto.container.image>mirror.gcr.io/eclipse-mosquitto:2.0.18</eclipse-mosquitto.container.image>
-        <elasticsearch.container.image>mirror.gcr.io/elastic/elasticsearch:8.15.1</elasticsearch.container.image>
+        <elasticsearch.container.image>mirror.gcr.io/elastic/elasticsearch:9.1.0</elasticsearch.container.image>
         <eventhubs-emulator.container.image>mcr.microsoft.com/azure-messaging/eventhubs-emulator:latest</eventhubs-emulator.container.image>
         <fhir.container.image.base>mirror.gcr.io/hapiproject/hapi</fhir.container.image.base>
-        <fhir.container.image>${fhir.container.image.base}:v7.2.0</fhir.container.image>
+        <fhir.container.image>${fhir.container.image.base}:v8.6.0-1</fhir.container.image>
         <fhir-dstu.container.image>${fhir.container.image.base}:v4.2.0</fhir-dstu.container.image>
-        <google-cloud-sdk.container.image>gcr.io/google.com/cloudsdktool/cloud-sdk:492.0.0-emulators</google-cloud-sdk.container.image>
-        <google-storage.container.image>mirror.gcr.io/fsouza/fake-gcs-server:1.49.3</google-storage.container.image>
-        <greenmail.container.image>mirror.gcr.io/greenmail/standalone:2.0.0</greenmail.container.image>
-        <hashicorp-vault.container.image>mirror.gcr.io/hashicorp/vault:1.17</hashicorp-vault.container.image>
-        <ibm-mq.container.image>icr.io/ibm-messaging/mq:9.4.2.0-r2</ibm-mq.container.image>
-        <influxdb.container.image>mirror.gcr.io/influxdb:1.8.10-alpine</influxdb.container.image>
-        <kafka.container.image>quay.io/strimzi-test-container/test-container:latest-kafka-3.9.0</kafka.container.image>
+        <google-cloud-sdk.container.image>gcr.io/google.com/cloudsdktool/cloud-sdk:551.0.0-emulators</google-cloud-sdk.container.image>
+        <google-storage.container.image>mirror.gcr.io/fsouza/fake-gcs-server:1.52.3</google-storage.container.image>
+        <greenmail.container.image>mirror.gcr.io/greenmail/standalone:2.1.8</greenmail.container.image>
+        <hashicorp-vault.container.image>mirror.gcr.io/hashicorp/vault:1.20.4</hashicorp-vault.container.image>
+        <ibm-mq.container.image>icr.io/ibm-messaging/mq:9.4.5.0-r1</ibm-mq.container.image>
+        <infinispan.container.image>quay.io/infinispan/server:latest</infinispan.container.image><!-- @sync io.quarkus:quarkus-build-parent:${quarkus.version} prop:infinispan.image -->
+        <influxdb.container.image>mirror.gcr.io/influxdb:1.12.2-alpine</influxdb.container.image>
+        <kafka.container.image>quay.io/strimzi-test-container/test-container:0.114.0-kafka-4.1.0</kafka.container.image>
         <keycloak.container.image>quay.io/keycloak/keycloak:${keycloak.version}</keycloak.container.image>
-        <kudu.container.image>mirror.gcr.io/apache/kudu:1.17.0</kudu.container.image>
-        <localstack.container.image>mirror.gcr.io/localstack/localstack:3.7.2</localstack.container.image>
+        <kudu.container.image>mirror.gcr.io/apache/kudu:1.18.0-ubuntu</kudu.container.image>
+        <localstack.container.image>mirror.gcr.io/localstack/localstack:4.13.0</localstack.container.image>
         <lra-coordinator.container.image>quay.io/jbosstm/lra-coordinator:7.0.1.Final-3.8.3</lra-coordinator.container.image>
-        <minio.container.image>mirror.gcr.io/minio/minio:RELEASE.2024-09-13T20-26-02Z</minio.container.image>
-        <mysql.container.image>mirror.gcr.io/mysql:8.4</mysql.container.image>
+        <mariadb.container.image>mirror.gcr.io/mariadb:12.1</mariadb.container.image>
+        <milvus.container.image>mirror.gcr.io/milvusdb/milvus:v2.3.9</milvus.container.image>
+        <minio.container.image>mirror.gcr.io/minio/minio:RELEASE.2025-07-23T15-54-02Z-cpuv1</minio.container.image>
         <mongodb.container.image>mirror.gcr.io/mongo:7.0</mongodb.container.image>
-        <nats.container.image>mirror.gcr.io/nats:2.10.18</nats.container.image>
+        <mysql.container.image>mirror.gcr.io/mysql:9.5</mysql.container.image>
+        <nats.container.image>mirror.gcr.io/nats:2.11.6</nats.container.image>
+        <opensearch.container.image>mirror.gcr.io/opensearchproject/opensearch:3.1.0</opensearch.container.image>
         <openssh-server.container.image>mirror.gcr.io/linuxserver/openssh-server:version-9.7_p1-r4</openssh-server.container.image>
-        <pinecone.container.image>ghcr.io/pinecone-io/pinecone-local:v0.7.0</pinecone.container.image>
-        <postgres.container.image>mirror.gcr.io/postgres:15.0</postgres.container.image>
-        <postgres-debezium.container.image>mirror.gcr.io/debezium/postgres:15-alpine</postgres-debezium.container.image>
-        <qdrant.container.image>mirror.gcr.io/qdrant/qdrant:v1.9.7-unprivileged</qdrant.container.image>
-        <rabbitmq.container.image>mirror.gcr.io/rabbitmq:3.13.7-management-alpine</rabbitmq.container.image>
-        <redis.container.image>mirror.gcr.io/redis:6.2.14-alpine</redis.container.image>
+        <oracle-debezium.container.image>mirror.gcr.io/gvenzl/oracle-free:23.26.1-slim-faststart</oracle-debezium.container.image>
+        <pinecone.container.image>ghcr.io/pinecone-io/pinecone-local:v1.0.0.rc0</pinecone.container.image>
+        <postgres.container.image>mirror.gcr.io/postgres:17.5</postgres.container.image>
+        <postgres-debezium.container.image>quay.io/debezium/postgres:17-alpine</postgres-debezium.container.image>
+        <qdrant.container.image>mirror.gcr.io/qdrant/qdrant:v1.16.0-unprivileged</qdrant.container.image>
+        <rabbitmq.container.image>mirror.gcr.io/rabbitmq:4.1.2-management-alpine</rabbitmq.container.image>
+        <redis.container.image>mirror.gcr.io/redis:7.4.0-alpine</redis.container.image>
         <servicebus-emulator.container.image>mcr.microsoft.com/azure-messaging/servicebus-emulator:latest</servicebus-emulator.container.image>
         <smb.container.image>quay.io/jamesnetherton/camel-smb-test-server:1.0.0</smb.container.image>
-        <solr.container.image>mirror.gcr.io/solr:9.8.0-slim</solr.container.image>
-        <splunk.container.image>mirror.gcr.io/splunk/splunk:9.3.1</splunk.container.image>
+        <solr.container.image>mirror.gcr.io/solr:9.9.0-slim</solr.container.image>
+        <splunk.container.image>mirror.gcr.io/splunk/splunk:9.4.7</splunk.container.image>
         <sql-server.container.image>mcr.microsoft.com/mssql/server:2022-latest</sql-server.container.image>
+        <weaviate.container.image>mirror.gcr.io/semitechnologies/weaviate:1.32.0</weaviate.container.image>
 
         <!-- Plugin configuration through properties  -->
 
@@ -284,7 +300,7 @@
 
         <!-- maven-enforcer-plugin -->
         <min-maven-version>3.8.2</min-maven-version>
-        <target-maven-version>3.9.9</target-maven-version><!-- @sync io.quarkus:quarkus-build-parent:${quarkus.version} prop:proposed-maven-version -->
+        <target-maven-version>3.9.12</target-maven-version><!-- @sync io.quarkus:quarkus-build-parent:${quarkus.version} prop:proposed-maven-version -->
         <supported-maven-versions>[${min-maven-version},)</supported-maven-versions>
 
         <!-- maven-release-plugin -->
@@ -319,9 +335,7 @@
             <url>http://camel.apache.org</url>
             <organization>Apache Software Foundation</organization>
             <organizationUrl>http://apache.org/</organizationUrl>
-            <properties>
-                <picUrl>http://camel.apache.org/banner.data/apache-camel-7.png</picUrl>
-            </properties>
+
         </developer>
     </developers>
 
@@ -371,6 +385,7 @@
             </releases>
         </repository>
     </repositories>
+    
     <pluginRepositories>
         <pluginRepository>
             <id>apache.snapshots</id>
@@ -612,6 +627,7 @@
                                     <exclude>**/conf.d/**</exclude>
                                     <exclude>**/generated/**</exclude>
                                     <exclude>.envrc</exclude>
+                                    <exclude>.sdkmanrc</exclude>
                                     <exclude>**/.idea/**</exclude>
                                     <exclude>**/k8s-sb/**</exclude>
                                     <exclude>.gitattributes</exclude>
@@ -963,6 +979,7 @@
                                         <sortModulesPath>integration-test-groups/azure/pom.xml</sortModulesPath>
                                         <sortModulesPath>integration-test-groups/compression/pom.xml</sortModulesPath>
                                         <sortModulesPath>integration-test-groups/cxf-soap/pom.xml</sortModulesPath>
+                                        <sortModulesPath>integration-test-groups/debezium/pom.xml</sortModulesPath>
                                         <sortModulesPath>integration-test-groups/foundation/pom.xml</sortModulesPath>
                                         <sortModulesPath>integration-test-groups/mongodb/pom.xml</sortModulesPath>
                                         <sortModulesPath>integration-test-groups/xml/pom.xml</sortModulesPath>

@@ -44,7 +44,7 @@ import org.apache.camel.quarkus.test.support.aws2.BaseAws2Resource;
 import org.apache.camel.spi.PeriodTaskResolver;
 import org.apache.camel.support.PluginHelper;
 import org.apache.camel.util.CollectionHelper;
-import org.jboss.logging.Logger;
+import org.eclipse.microprofile.config.ConfigProvider;
 import software.amazon.awssdk.services.secretsmanager.model.CreateSecretResponse;
 import software.amazon.awssdk.services.secretsmanager.model.DeleteSecretRequest;
 import software.amazon.awssdk.services.secretsmanager.model.DeleteSecretResponse;
@@ -52,7 +52,9 @@ import software.amazon.awssdk.services.secretsmanager.model.DescribeSecretRespon
 import software.amazon.awssdk.services.secretsmanager.model.ListSecretsResponse;
 import software.amazon.awssdk.services.secretsmanager.model.ReplicateSecretToRegionsResponse;
 import software.amazon.awssdk.services.secretsmanager.model.RestoreSecretResponse;
+import software.amazon.awssdk.services.secretsmanager.model.RotateSecretRequest;
 import software.amazon.awssdk.services.secretsmanager.model.RotateSecretResponse;
+import software.amazon.awssdk.services.secretsmanager.model.RotationRulesType;
 import software.amazon.awssdk.services.secretsmanager.model.SecretListEntry;
 import software.amazon.awssdk.services.secretsmanager.model.UpdateSecretResponse;
 
@@ -60,21 +62,16 @@ import software.amazon.awssdk.services.secretsmanager.model.UpdateSecretResponse
 @ApplicationScoped
 public class AwsSecretsManagerResource extends BaseAws2Resource {
 
-    private static final Logger LOG = Logger.getLogger(AwsSecretsManagerResource.class);
-
-    private static final String COMPONENT_AWS_SECRETS_MANAGER = "aws-secrets-manager";
+    static final AtomicBoolean contextReloaded = new AtomicBoolean(false);
 
     @Inject
     CamelContext context;
-
     @Inject
     ProducerTemplate producerTemplate;
 
     public AwsSecretsManagerResource() {
         super(null, "camel.component.aws-secrets-manager");
     }
-
-    static final AtomicBoolean contextReloaded = new AtomicBoolean(false);
 
     void onReload(@Observes CamelContextReloadedEvent event) {
         contextReloaded.set(true);
@@ -91,21 +88,36 @@ public class AwsSecretsManagerResource extends BaseAws2Resource {
             throws Exception {
 
         final Object resultBody;
+        boolean isPojoRequest = false;
         if (operation.equals("forceDeleteSecret")) {
             operation = SecretsManagerOperations.deleteSecret.toString();
             DeleteSecretRequest.Builder builder = DeleteSecretRequest.builder();
             builder.secretId((String) headers.get(SecretsManagerConstants.SECRET_ID));
             builder.forceDeleteWithoutRecovery(true);
             resultBody = builder.build();
+            isPojoRequest = true;
+        } else if (operation.equals("rotateSecretWithRotationRulesSet")) {
+            operation = SecretsManagerOperations.rotateSecret.toString();
+            RotateSecretRequest.Builder builder = RotateSecretRequest.builder();
+            builder.secretId((String) headers.get(SecretsManagerConstants.SECRET_ID));
+            builder.rotationLambdaARN((String) headers.get(SecretsManagerConstants.LAMBDA_ROTATION_FUNCTION_ARN));
+            builder.rotationRules(RotationRulesType.builder().build());
+            resultBody = builder.build();
+            isPojoRequest = true;
         } else {
             resultBody = body;
         }
 
         String region = headers.containsKey("region") ? String.format("region=%s&", headers.get("region")) : "";
 
-        String url = useHeaders ? String.format("aws-secrets-manager://test?%suseDefaultCredentialsProvider=%s",
-                region, isUseDefaultCredentials())
-                : String.format("aws-secrets-manager://test?%soperation=%s&useDefaultCredentialsProvider=%s",
+        String url = useHeaders
+                ? String.format(
+                        "aws-secrets-manager://test?%suseDefaultCredentialsProvider=%s"
+                                + (isPojoRequest ? "&pojoRequest=true" : ""),
+                        region, isUseDefaultCredentials())
+                : String.format(
+                        "aws-secrets-manager://test?%soperation=%s&useDefaultCredentialsProvider=%s"
+                                + (isPojoRequest ? "&pojoRequest=true" : ""),
                         region, operation, isUseDefaultCredentials());
 
         Exchange ex = producerTemplate.send(url,
@@ -181,4 +193,11 @@ public class AwsSecretsManagerResource extends BaseAws2Resource {
         return Response.ok(new URI("https://camel.apache.org/")).entity(ex.getIn().getBody()).build();
     }
 
+    @Path("/configProperty/{propertyName}")
+    @GET
+    @Produces(MediaType.TEXT_PLAIN)
+    public Response configProperty(@PathParam("propertyName") String propertyName) throws Exception {
+        String propertyValue = ConfigProvider.getConfig().getValue(propertyName, String.class);
+        return Response.ok(new URI("https://camel.apache.org/")).entity(propertyValue).build();
+    }
 }

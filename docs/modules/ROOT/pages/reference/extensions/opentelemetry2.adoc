@@ -50,22 +50,22 @@ The extension automatically creates a Camel `OpenTelemetryTracer` and binds it t
 
 In order to send the captured traces to a tracing system, you need to configure some properties within `application.properties` like those below.
 
-NOTE: this extension may eventually replace the `opentelemetry` extension. You're invited to change the older extension usage with this one.
+NOTE: This extension addresses inconsistencies found in the original `camel-quarkus-opentelemetry` extensions and offers a more robust implementation.
 
 [source,properties]
 ----
 # OTLP exporter endpoint
-quarkus.otel.exporter.otlp.traces.endpoint=http://localhost:4317
+quarkus.otel.exporter.otlp.endpoint=http://localhost:4317
 ----
 
 Refer to the https://quarkus.io/guides/opentelemetry[Quarkus OpenTelemetry guide] for a full list of configuration options.
 
-Route endpoints can be excluded from tracing by configuring a property named `quarkus.camel.opentelemetry.exclude-patterns` in `application.properties`. For example:
+Route endpoints can be excluded from tracing by configuring a property named `quarkus.camel.opentelemetry2.exclude-patterns` in `application.properties`. For example:
 
 [source,properties]
 ----
 # Exclude all direct & netty-http endpoints from tracing
-quarkus.camel.opentelemetry.exclude-patterns=direct:*,netty-http:*
+quarkus.camel.opentelemetry2.exclude-patterns=direct:*,netty-http:*
 ----
 
 NOTE: The use of the https://opentelemetry.io/docs/zero-code/java/agent/[OpenTelemetry Agent] *is not needed nor recommended*.
@@ -128,11 +128,11 @@ a| [[quarkus-camel-opentelemetry2-exclude-patterns]]`link:#quarkus-camel-opentel
 Sets whether to disable tracing for endpoint URIs or Processor ids that match the given comma separated patterns. The
 pattern can take the following forms:
 
-1. An exact match on the endpoint URI. E.g platform-http:/some/path
+1. An exact match on the endpoint URI. E.g. platform-http:/some/path
 
-2. A wildcard match. E.g platform-http:++*++
+2. A wildcard match. E.g. platform-http:++*++
 
-3. A regular expression matching the endpoint URI. E.g platform-http:/prefix/.++*++
+3. A regular expression matching the endpoint URI. E.g. platform-http:/prefix/.++*++
 | `string`
 | 
 
@@ -140,6 +140,12 @@ a| [[quarkus-camel-opentelemetry2-trace-processors]]`link:#quarkus-camel-opentel
 
 Sets whether to create new OpenTelemetry spans for each Camel Processor. Use the excludePatterns property to filter
 out Processors.
+| `boolean`
+| `false`
+
+a| [[quarkus-camel-opentelemetry2-trace-headers-inclusion]]`link:#quarkus-camel-opentelemetry2-trace-headers-inclusion[quarkus.camel.opentelemetry2.trace-headers-inclusion]`
+
+If set to `true`, adds the generated telemetry `CAMEL_TRACE_ID` and `CAMEL_SPAN_ID` Exchange headers.
 | `boolean`
 | `false`
 |===

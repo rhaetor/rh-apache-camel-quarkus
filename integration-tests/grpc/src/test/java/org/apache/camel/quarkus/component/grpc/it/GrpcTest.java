@@ -48,9 +48,11 @@ import org.apache.camel.util.StringHelper;
 import org.awaitility.Awaitility;
 import org.eclipse.microprofile.config.Config;
 import org.eclipse.microprofile.config.ConfigProvider;
+import org.jboss.logging.Logger;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInfo;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -61,7 +63,6 @@ import static org.apache.camel.component.grpc.GrpcConstants.GRPC_EVENT_TYPE_ON_E
 import static org.apache.camel.component.grpc.GrpcConstants.GRPC_EVENT_TYPE_ON_NEXT;
 import static org.apache.camel.component.grpc.GrpcConstants.GRPC_METHOD_NAME_HEADER;
 import static org.apache.camel.quarkus.component.grpc.it.GrpcRoute.GRPC_JWT_SECRET;
-import static org.apache.camel.quarkus.component.grpc.it.PingPongImpl.GRPC_TEST_PONG_VALUE;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -79,7 +80,15 @@ import static org.junit.jupiter.api.Assertions.fail;
 class GrpcTest {
 
     private static final String GRPC_TEST_PING_VALUE = "PING";
+    private static final String GRPC_TEST_PONG_VALUE = "PONG";
     private static final int GRPC_TEST_PING_ID = 1234;
+    private static final Logger LOG = Logger.getLogger(GrpcTest.class);
+
+    @BeforeEach
+    void setup(TestInfo testInfo) {
+        String methodName = testInfo.getDisplayName();
+        LOG.infof("Running test method: %s", methodName);
+    }
 
     @ParameterizedTest
     @MethodSource("producerMethodPorts")
@@ -184,22 +193,38 @@ class GrpcTest {
         }
     }
 
-    @Disabled("https://github.com/apache/camel-quarkus/issues/3037")
     @Test
     public void forwardOnError() throws InterruptedException {
         Config config = ConfigProvider.getConfig();
         Integer port = config.getValue("camel.grpc.test.forward.error.server.port", Integer.class);
         CountDownLatch latch = new CountDownLatch(1);
+        PingRequest pingRequest = PingRequest.newBuilder()
+                .setPingName(GRPC_TEST_PING_VALUE)
+                .setPingId(GRPC_TEST_PING_ID)
+                .build();
 
         ManagedChannel channel = ManagedChannelBuilder.forAddress("localhost", port).usePlaintext().build();
         try {
             PingPongStub pingPongStub = PingPongGrpc.newStub(channel);
-            PongResponseStreamObserver responseObserver = new PongResponseStreamObserver(latch, true);
+            LOG.info("forwardOnError: preparing observers");
+            PongResponseStreamObserver responseObserver = new PongResponseStreamObserver(latch);
             StreamObserver<PingRequest> requestObserver = pingPongStub.pingAsyncAsync(responseObserver);
-            requestObserver.onNext(null);
+            // GRPC uses DelayedClientCall, which queues requests before real call is ready.
+            // Thus we first need to establish real call with calling eg. `onNext` and wait for its response.
+            requestObserver.onNext(pingRequest);
+            Awaitility.await().atMost(5, TimeUnit.SECONDS).until(() -> responseObserver.getPongResponse() != null);
+            // Then we can finally mimic failure by calling `onError`.
+            // If we wouldn't establish the real call first, the DelayedClientCall would just call `onError` on ResponseObserver immediately without propagating it to real call
+            // (which we need for testing forwardOnError option on camel server side).
+            // More details in: https://github.com/grpc/grpc-java/blob/v1.76.0/core/src/main/java/io/grpc/internal/DelayedClientCall.java#L256
+            // Also note this comment https://github.com/apache/camel-quarkus/issues/7897#issuecomment-3480980023
+            requestObserver.onError(new IllegalStateException("Forced exception"));
 
+            LOG.info("forwardOnError: waiting latch.await(5s)");
             assertTrue(latch.await(5, TimeUnit.SECONDS));
+            LOG.info("forwardOnError: asserting non null responseObserver.getErrorResponse");
             assertNotNull(responseObserver.getErrorResponse());
+            LOG.info("forwardOnError: asserting returned exception");
             assertEquals(StatusRuntimeException.class.getName(), responseObserver.getErrorResponse().getClass().getName());
 
             Awaitility.await().atMost(5, TimeUnit.SECONDS).until(() -> {
@@ -222,6 +247,7 @@ class GrpcTest {
                         && methodName.equals("pingAsyncAsync");
             });
         } finally {
+            LOG.info("Finished test forwardOnError");
             channel.shutdownNow();
         }
     }
@@ -643,17 +669,11 @@ class GrpcTest {
 
     static final class PongResponseStreamObserver implements StreamObserver<PongResponse> {
         private final CountDownLatch latch;
-        private final boolean simulateError;
         private PongResponse pongResponse;
-        private Throwable errorResponse;
+        private volatile Throwable errorResponse;
 
         public PongResponseStreamObserver(CountDownLatch latch) {
-            this(latch, false);
-        }
-
-        public PongResponseStreamObserver(CountDownLatch latch, boolean simulateError) {
             this.latch = latch;
-            this.simulateError = simulateError;
         }
 
         public PongResponse getPongResponse() {
@@ -666,20 +686,21 @@ class GrpcTest {
 
         @Override
         public void onNext(PongResponse value) {
+            LOG.infof("PongResponseStreamObserver#onNext:%s", value);
             pongResponse = value;
-            if (simulateError) {
-                throw new IllegalStateException("Forced exception");
-            }
         }
 
         @Override
         public void onError(Throwable t) {
-            latch.countDown();
+            LOG.infof("PongResponseStreamObserver#onError:%s, cause:%s, errorResponse:%s", t, t.getCause(), errorResponse);
+            // note we are calling `latch.countDown` after we store the exception, otherwise it can happen that we assert the errorResponse existence sooner then it is stored
             errorResponse = t;
+            latch.countDown();
         }
 
         @Override
         public void onCompleted() {
+            LOG.info("PongResponseStreamObserver#onCompleted");
             latch.countDown();
         }
     }

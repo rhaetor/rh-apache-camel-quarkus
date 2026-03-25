@@ -22,7 +22,7 @@
     <parent>
         <groupId>org.apache.camel.quarkus</groupId>
         <artifactId>camel-quarkus-build-parent-it</artifactId>
-        <version>3.23.0-SNAPSHOT</version>
+        <version>3.35.0-SNAPSHOT</version>
         <relativePath>../../poms/build-parent-it/pom.xml</relativePath>
     </parent>
 
@@ -75,7 +75,7 @@
         <!-- test dependencies -->
         <dependency>
             <groupId>io.quarkus</groupId>
-            <artifactId>quarkus-junit5</artifactId>
+            <artifactId>quarkus-junit</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -97,17 +97,6 @@
             <groupId>org.testcontainers</groupId>
             <artifactId>testcontainers</artifactId>
             <scope>test</scope>
-            <exclusions>
-                <exclusion>
-                    <groupId>junit</groupId>
-                    <artifactId>junit</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>io.quarkus</groupId>
-            <artifactId>quarkus-junit4-mock</artifactId>
-            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.awaitility</groupId>
@@ -116,28 +105,19 @@
         </dependency>
     </dependencies>
 
+    <build>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>true</filtering>
+                <includes>
+                    <include>**/application.properties</include>
+                </includes>
+            </resource>
+        </resources>
+    </build>
+
     <profiles>
-        <profile>
-            <id>full</id>
-            <activation>
-                <property>
-                    <name>!quickly</name>
-                </property>
-            </activation>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-surefire-plugin</artifactId>
-                        <configuration>
-                            <systemPropertyVariables>
-                                <keycloak.docker.image>${keycloak.container.image}</keycloak.docker.image>
-                            </systemPropertyVariables>
-                        </configuration>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
         <profile>
             <id>native</id>
             <activation>
@@ -159,11 +139,6 @@
                                     <goal>integration-test</goal>
                                     <goal>verify</goal>
                                 </goals>
-                                <configuration>
-                                    <systemPropertyVariables>
-                                        <keycloak.docker.image>${keycloak.container.image}</keycloak.docker.image>
-                                    </systemPropertyVariables>
-                                </configuration>
                             </execution>
                         </executions>
                     </plugin>

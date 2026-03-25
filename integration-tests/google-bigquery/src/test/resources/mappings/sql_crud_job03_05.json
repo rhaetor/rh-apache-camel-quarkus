@@ -1,0 +1,40 @@
+{
+  "id" : "f0d094c9-0155-4a61-bc34-f8faa7cb18f7",
+  "name" : "bigquery_v2_projects_test-project_queries_job03",
+  "request" : {
+    "urlPath" : "/bigquery/v2/projects/test-project/queries/job03",
+    "method" : "GET",
+    "queryParameters" : {
+      "maxResults" : {
+        "hasExactly" : [ {
+          "equalTo" : "0"
+        } ]
+      },
+      "prettyPrint" : {
+        "hasExactly" : [ {
+          "equalTo" : "false"
+        } ]
+      }
+    }
+  },
+  "response" : {
+    "status" : 200,
+    "body" : "{\"kind\":\"bigquery#getQueryResultsResponse\",\"etag\":\"vdNBWDJDsQKnt9WnoStpag==\",\"schema\":{\"fields\":[{\"name\":\"id\",\"type\":\"NUMERIC\",\"mode\":\"NULLABLE\"},{\"name\":\"col1\",\"type\":\"NUMERIC\",\"mode\":\"NULLABLE\"},{\"name\":\"col2\",\"type\":\"NUMERIC\",\"mode\":\"NULLABLE\"}]},\"jobReference\":{\"projectId\":\"test-project\",\"jobId\":\"job03\",\"location\":\"US\"},\"totalRows\":\"2\",\"pageToken\":\"BEBOQ3OJTIAQAAASA4EAAEEAQCAAKGQIBAABB7X7777QOIFQVYKUVHQCBJXQUHAKCFYHE33WMVXC233DORQW4ZJNGEYDAEIJXVPOHRAAAAABEKK7MI4GGMZXGY2DQNZQMI2GMZBSMEYDEZRWGRSDKNTBMZRGKZLEHA2DMOLEMUYTAYJVDISGKY3DGQ4DGNZQFU2TOODEFU2GINZQFU4WCNRRFVTDSMBSGJQTQNRYMJRDKESEMFXG63RUMNSDEMLEGIZTGMBQMMYGKMDFHBSTSMBQGVQTQZDDG5TDKOLDMNRWEZTFGQ4TGMBZMI3TQOLFGA2TQM3CMQ2DEZTDG42DKNDFG5SGGGTFGRRWIMRRMQZDGMZQGBRTAZJQMU4GKOJQGA2WCODEMM3WMNJZMNRWGYTGMU2DSMZQHFRDOOBZMUYDKOBTMJSDIMTGMM3TINJUMU3WIYZDMI2GENDFGAZGGLJTGYYWELJUMM4DKLJZGI4DSLJUMVQTONJYGM2TGOLEGY======\",\"totalBytesProcessed\":\"96\",\"jobComplete\":true,\"cacheHit\":false}",
+    "headers" : {
+      "X-Frame-Options" : "SAMEORIGIN",
+      "Alt-Svc" : "h3=\":443\"; ma=2592000,h3-29=\":443\"; ma=2592000",
+      "Server" : "ESF",
+      "ETag" : "vdNBWDJDsQKnt9WnoStpag==",
+      "X-Content-Type-Options" : "nosniff",
+      "Vary" : [ "Origin", "X-Origin", "Referer" ],
+      "X-XSS-Protection" : "0",
+      "Date" : "Fri, 28 Nov 2025 07:46:55 GMT",
+      "Content-Type" : "application/json; charset=UTF-8"
+    }
+  },
+  "uuid" : "f0d094c9-0155-4a61-bc34-f8faa7cb18f7",
+  "persistent" : true,
+  "scenarioName" : "scenario-1-bigquery-v2-projects-test-project-queries-job03",
+  "requiredScenarioState" : "scenario-1-bigquery-v2-projects-test-project-queries-job03-2",
+  "insertionIndex" : 42
+}

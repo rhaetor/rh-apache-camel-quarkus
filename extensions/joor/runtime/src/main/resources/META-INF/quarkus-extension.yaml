@@ -29,6 +29,6 @@ metadata:
   guide: "https://camel.apache.org/camel-quarkus/latest/reference/extensions/joor.html"
   categories:
   - "integration"
-  status:
-  - "stable"
-  - "deprecated"
+  config:
+  - "quarkus.camel.joor"
+  status: "deprecated"

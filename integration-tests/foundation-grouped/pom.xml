@@ -22,7 +22,7 @@
     <parent>
         <groupId>org.apache.camel.quarkus</groupId>
         <artifactId>camel-quarkus-build-parent-it</artifactId>
-        <version>3.23.0-SNAPSHOT</version>
+        <version>3.35.0-SNAPSHOT</version>
         <relativePath>../../poms/build-parent-it/pom.xml</relativePath>
     </parent>
 
@@ -102,11 +102,11 @@
         </dependency>
         <dependency>
             <groupId>org.apache.camel.quarkus</groupId>
-            <artifactId>camel-quarkus-integration-tests-support-custom-log-component</artifactId>
+            <artifactId>camel-quarkus-integration-tests-support-custom-type-converter</artifactId>
         </dependency>
         <dependency>
             <groupId>org.apache.camel.quarkus</groupId>
-            <artifactId>camel-quarkus-integration-tests-support-custom-type-converter</artifactId>
+            <artifactId>camel-quarkus-jackson</artifactId>
         </dependency>
         <dependency>
             <groupId>org.apache.camel.quarkus</groupId>
@@ -166,17 +166,22 @@
         </dependency>
         <dependency>
             <groupId>io.quarkus</groupId>
-            <artifactId>quarkus-junit5</artifactId>
+            <artifactId>quarkus-junit</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>io.quarkus</groupId>
-            <artifactId>quarkus-junit5-mockito</artifactId>
+            <artifactId>quarkus-junit-mockito</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>io.rest-assured</groupId>
             <artifactId>rest-assured</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.camel.quarkus</groupId>
+            <artifactId>camel-quarkus-integration-test-support</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -393,7 +398,7 @@
                 </dependency>
                 <dependency>
                     <groupId>org.apache.camel.quarkus</groupId>
-                    <artifactId>camel-quarkus-integration-tests-support-custom-log-component-deployment</artifactId>
+                    <artifactId>camel-quarkus-integration-tests-support-custom-type-converter-deployment</artifactId>
                     <version>${project.version}</version>
                     <type>pom</type>
                     <scope>test</scope>
@@ -406,7 +411,7 @@
                 </dependency>
                 <dependency>
                     <groupId>org.apache.camel.quarkus</groupId>
-                    <artifactId>camel-quarkus-integration-tests-support-custom-type-converter-deployment</artifactId>
+                    <artifactId>camel-quarkus-jackson-deployment</artifactId>
                     <version>${project.version}</version>
                     <type>pom</type>
                     <scope>test</scope>

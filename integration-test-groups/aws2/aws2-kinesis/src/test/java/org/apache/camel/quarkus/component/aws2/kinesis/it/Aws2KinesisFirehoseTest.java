@@ -27,13 +27,13 @@ import io.restassured.http.ContentType;
 import org.apache.camel.quarkus.test.support.aws2.Aws2Client;
 import org.apache.camel.quarkus.test.support.aws2.Aws2TestResource;
 import org.apache.camel.quarkus.test.support.aws2.BaseAWs2TestSupport;
+import org.apache.camel.quarkus.test.support.aws2.Service;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.awaitility.Awaitility;
 import org.eclipse.microprofile.config.Config;
 import org.eclipse.microprofile.config.ConfigProvider;
 import org.jboss.logging.Logger;
 import org.junit.jupiter.api.Test;
-import org.testcontainers.containers.localstack.LocalStackContainer.Service;
 import software.amazon.awssdk.core.ResponseInputStream;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
@@ -57,6 +57,7 @@ class Aws2KinesisFirehoseTest extends BaseAWs2TestSupport {
 
     @Test
     public void firehose() {
+        LOG.info("Testing firehose");
         final String msg = RandomStringUtils.secure().nextAlphanumeric(32 * 1024);
         final String msgPrefix = msg.substring(0, 32);
         final long maxDataBytes = Aws2KinesisTestEnvCustomizer.BUFFERING_SIZE_MB * 1024 * 1024;
@@ -116,6 +117,7 @@ class Aws2KinesisFirehoseTest extends BaseAWs2TestSupport {
 
     @Override
     public void testMethodForDefaultCredentialsProvider() {
+        LOG.info("Testing testMethodForDefaultCredentialsProvider");
         RestAssured.given() //
                 .contentType(ContentType.TEXT)
                 .body("test")

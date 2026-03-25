@@ -23,7 +23,7 @@
     <parent>
         <groupId>org.apache.camel.quarkus</groupId>
         <artifactId>camel-quarkus</artifactId>
-        <version>3.23.0-SNAPSHOT</version>
+        <version>3.35.0-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -38,12 +38,12 @@
         <module>aws-xray</module>
         <module>azure-cosmosdb</module>
         <module>azure-files</module>
-        <module>azure-storage-datalake</module>
         <module>barcode</module>
         <module>bonita</module>
         <module>chatscript</module>
         <module>chunk</module>
         <module>cli-connector</module>
+        <module>cli-debug</module>
         <module>cm-sms</module>
         <module>coap</module>
         <module>cometd</module>
@@ -63,6 +63,8 @@
         <module>guava-eventbus</module>
         <module>huaweicloud-smn</module>
         <module>ibm-secrets-manager</module>
+        <module>ibm-watson-discovery</module>
+        <module>ibm-watson-language</module>
         <module>iec60870</module>
         <module>ignite</module>
         <module>irc</module>
@@ -73,18 +75,17 @@
         <module>jooq</module>
         <module>json-patch</module>
         <module>jsonapi</module>
-        <module>langchain4j-embeddings</module>
-        <module>langchain4j-tokenizer</module>
-        <module>langchain4j-tools</module>
-        <module>langchain4j-web-search</module>
+        <module>junit-test-framework</module>
+        <module>langchain4j-agent-ql4j</module>
         <module>ldif</module>
         <module>lucene</module>
-        <module>mail-microsoft-oauth</module>
-        <module>milvus</module>
+        <module>main-devmode</module>
         <module>mvel</module>
         <module>opensearch</module>
+        <module>pqc</module>
         <module>printer</module>
         <module>pulsar</module>
+        <module>python</module>
         <module>quickfix</module>
         <module>redis</module>
         <module>robotframework</module>

@@ -98,6 +98,9 @@ public class UpdateExtensionDocPageMojo extends AbstractDocGeneratorMojo {
     @Parameter(defaultValue = "${session}", readonly = true, required = true)
     private MavenSession session;
 
+    @Parameter
+    Map<String, ComponentLinkOverride> componentLinkOverrides = new HashMap<>();
+
     /** {@inheritDoc} */
     @SuppressWarnings("unchecked")
     @Override
@@ -139,7 +142,7 @@ public class UpdateExtensionDocPageMojo extends AbstractDocGeneratorMojo {
                     CamelQuarkusExtension.CAMEL_QUARKUS_JVM_SINCE + " property must defined in " + pomRelPath);
         }
         final String extensionsDir = runtimeModuleDir.getParent().getParent().getFileName().toString();
-        if (!"extensions-jvm".equals(extensionsDir) && ext.getNativeSince().isEmpty()) {
+        if (ext.isNativeSupported() && !"extensions-jvm".equals(extensionsDir) && ext.getNativeSince().isEmpty()) {
             throw new IllegalStateException(
                     CamelQuarkusExtension.CAMEL_QUARKUS_NATIVE_SINCE + " property must defined in " + pomRelPath);
         }
@@ -195,7 +198,6 @@ public class UpdateExtensionDocPageMojo extends AbstractDocGeneratorMojo {
                 deploymentModuleDir,
                 multiModuleProjectDirectory.toPath(),
                 ext.getRuntimeArtifactIdBase());
-        model.put("configOptions", configOptions);
         model.put("hasDurationOption", configOptions.stream().anyMatch(ConfigItem::isTypeDuration));
         model.put("hasMemSizeOption", configOptions.stream().anyMatch(ConfigItem::isTypeMemSize));
         model.put("configOptions", configOptions);
@@ -227,15 +229,27 @@ public class UpdateExtensionDocPageMojo extends AbstractDocGeneratorMojo {
 
             private String camelBitLink(ArtifactModel<?> model) {
                 model = CqCatalog.toCamelDocsModel(model);
-                final String kind = model.getKind().name();
+                String kind = model.getKind().name();
                 String name = model.getName();
                 String xrefPrefix = "xref:{cq-camel-components}:" + (!"component".equals(kind) ? kind + "s:" : ":");
-                if (name.equals("xml-io-dsl")) {
-                    name = "java-xml-io-dsl";
-                }
-                if (name.equals("console")) {
-                    xrefPrefix = "xref:manual::";
-                    name = "camel-console";
+
+                if (componentLinkOverrides.containsKey(name)) {
+                    ComponentLinkOverride override = componentLinkOverrides.get(name);
+                    if (override != null) {
+                        if (override.getName() != null) {
+                            name = override.getName();
+                        }
+
+                        if (override.getXrefPrefix() != null) {
+                            xrefPrefix = override.getXrefPrefix();
+                        }
+
+                        if (override.getKind() != null) {
+                            kind = override.getKind();
+                        }
+                    } else {
+                        getLog().warn("Failed to determine component link overrides for " + name);
+                    }
                 }
                 return xrefPrefix + name + (!"other".equals(kind) ? "-" + kind : "") + ".adoc";
             }

@@ -16,6 +16,7 @@
  */
 package org.apache.camel.quarkus.component.master.it;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
@@ -25,9 +26,9 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
-import io.fabric8.kubernetes.client.server.mock.KubernetesServer;
 import io.quarkus.test.common.QuarkusTestResource;
 import io.quarkus.test.junit.QuarkusTest;
+import io.quarkus.test.kubernetes.client.KubernetesServer;
 import io.quarkus.test.kubernetes.client.KubernetesTestServer;
 import io.restassured.RestAssured;
 import org.apache.camel.quarkus.test.support.process.QuarkusProcessExecutor;
@@ -37,8 +38,8 @@ import org.eclipse.microprofile.config.Config;
 import org.eclipse.microprofile.config.ConfigProvider;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.condition.DisabledOnOs;
-import org.junit.jupiter.api.condition.OS;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.zeroturnaround.exec.ProcessExecutor;
 import org.zeroturnaround.exec.StartedProcess;
 
@@ -49,6 +50,7 @@ import static org.hamcrest.Matchers.emptyString;
 @QuarkusTest
 class MasterOpenShiftTest {
 
+    private static final Logger LOG = LoggerFactory.getLogger(MasterOpenShiftTest.class);
     @KubernetesTestServer
     private KubernetesServer mockOpenShiftServer;
 
@@ -58,7 +60,6 @@ class MasterOpenShiftTest {
     }
 
     @Test
-    @DisabledOnOs(value = OS.WINDOWS, disabledReason = "kubernetes.master contains ':' that would clash as JVM arg on windows")
     public void testFailover() throws IOException {
         Config config = ConfigProvider.getConfig();
         List<String> jvmArgs = new ArrayList<>();
@@ -72,44 +73,53 @@ class MasterOpenShiftTest {
         jvmArgs.add("-Dkubernetes.trust.certificates=" + config.getValue("kubernetes.trust.certificates", String.class));
         jvmArgs.add(
                 "-Dkubernetes.auth.tryServiceAccount=" + config.getValue("kubernetes.auth.tryServiceAccount", String.class));
-        jvmArgs.add("-Dhttp2.disable=" + config.getValue("http2.disable", String.class));
 
         // Start secondary application process faking KubernetesClusterService so it assumes being run from a pod named follower
-        Consumer<ProcessExecutor> customizer = pe -> pe.environment("HOSTNAME", "follower");
-        QuarkusProcessExecutor followerProcessExecutor = new QuarkusProcessExecutor(customizer, jvmArgs.toArray(String[]::new));
-        StartedProcess followerProcess = null;
+        try (ByteArrayOutputStream standardStream = new ByteArrayOutputStream();
+                ByteArrayOutputStream errorStream = new ByteArrayOutputStream()) {
+            Consumer<ProcessExecutor> customizer = pe -> pe.environment("HOSTNAME", "follower")
+                    .redirectOutputAlsoTo(standardStream)
+                    .redirectErrorAlsoTo(errorStream);
+            QuarkusProcessExecutor followerProcessExecutor = new QuarkusProcessExecutor(customizer,
+                    jvmArgs.toArray(String[]::new));
+            StartedProcess followerProcess = null;
 
-        try {
-            // Verify that this process is the cluster leader
-            Awaitility.await().atMost(10, TimeUnit.SECONDS).with().until(() -> {
-                return readLeaderFile("leader").equals("leader");
-            });
+            try {
+                // Verify that this process is the cluster leader
+                Awaitility.await().atMost(10, TimeUnit.SECONDS).with().until(() -> {
+                    return readLeaderFile("leader").equals("leader");
+                });
 
-            // Start the follower process and wait until fully initialized
-            followerProcess = followerProcessExecutor.start();
-            awaitStartup(followerProcessExecutor);
+                // Start the follower process and wait until fully initialized
+                followerProcess = followerProcessExecutor.start();
+                awaitStartup(followerProcessExecutor);
 
-            // Verify the follower hasn't took leader role yet
-            assertThat(readLeaderFile("follower"), emptyString());
+                // Verify the follower hasn't taken the leader role yet
+                assertThat(readLeaderFile("follower"), emptyString());
 
-            // Stop camel and delete the lease mock to trigger fail-over
-            RestAssured.given().get("/master/camel/stop/leader").then().statusCode(204);
-            mockOpenShiftServer.getClient().leases().delete();
+                // Stop camel and delete the lease mock to trigger fail-over
+                RestAssured.given().get("/master/camel/stop/leader").then().statusCode(204);
+                mockOpenShiftServer.getClient().leases().delete();
 
-            // Verify that the secondary application has been elected as the
-            // cluster leader
-            Awaitility.await().atMost(10, TimeUnit.SECONDS).until(() -> {
-                return readLeaderFile("follower").equals("leader");
-            });
-        } finally {
-            if (followerProcess != null && followerProcess.getProcess().isAlive()) {
-                followerProcess.getProcess().destroy();
+                // Verify that the secondary application has been elected as the
+                // cluster leader
+                Awaitility.await().atMost(10, TimeUnit.SECONDS).until(() -> {
+                    return readLeaderFile("follower").equals("leader");
+                });
+            } finally {
+                LOG.info("Follower process standard log[start] {}", standardStream);
+                LOG.info("Follower process standard log[end]");
+                LOG.info("Follower process error log[start] {}", errorStream);
+                LOG.info("Follower process error log[end]");
+                if (followerProcess != null && followerProcess.getProcess().isAlive()) {
+                    followerProcessExecutor.destroy();
+                }
             }
         }
     }
 
     private void awaitStartup(QuarkusProcessExecutor quarkusProcessExecutor) {
-        Awaitility.await().atMost(10, TimeUnit.SECONDS).pollDelay(1, TimeUnit.SECONDS).until(() -> {
+        Awaitility.await().atMost(40, TimeUnit.SECONDS).pollDelay(1, TimeUnit.SECONDS).until(() -> {
             return isApplicationHealthy(quarkusProcessExecutor.getHttpPort());
         });
     }
@@ -119,6 +129,7 @@ class MasterOpenShiftTest {
             int status = RestAssured.given().port(port).get("/q/health").then().extract().statusCode();
             return status == 200;
         } catch (Exception e) {
+            LOG.error("App is not healthy yet", e);
             return false;
         }
     }

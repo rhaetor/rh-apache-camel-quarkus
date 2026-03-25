@@ -39,6 +39,8 @@ import io.quarkus.deployment.annotations.BuildStep;
 import io.quarkus.deployment.builditem.FeatureBuildItem;
 import io.quarkus.deployment.builditem.nativeimage.ReflectiveClassBuildItem;
 import io.quarkus.smallrye.openapi.deployment.spi.AddToOpenAPIDefinitionBuildItem;
+import io.quarkus.smallrye.openapi.deployment.spi.OpenAPISPIConstants;
+import io.quarkus.swaggerui.deployment.SwaggerUiUrlBuildItem;
 import io.smallrye.openapi.api.util.MergeUtil;
 import io.smallrye.openapi.runtime.io.IOContext;
 import io.smallrye.openapi.runtime.io.JsonIO;
@@ -94,7 +96,9 @@ class OpenApiJavaProcessor {
             Capabilities capabilities) throws Exception {
 
         if (capabilities.isPresent(Capability.SMALLRYE_OPENAPI)) {
-            RoutesConfigurer configurer = new RoutesConfigurer();
+            final CamelContext ctx = CamelSupport.newBuildTimeCamelContext(true);
+
+            RoutesConfigurer configurer = new RoutesConfigurer(ctx);
             List<RoutesBuilder> routes = new ArrayList<>();
             configurer.setRoutesBuilders(routes);
             configurer.setRoutesCollector(new DefaultRoutesCollector());
@@ -103,7 +107,6 @@ class OpenApiJavaProcessor {
             configurer.setRoutesExcludePattern(
                     CamelMainHelper.routesExcludePattern().collect(Collectors.joining(",")));
 
-            final CamelContext ctx = CamelSupport.newBuildTimeCamelContext(true);
             if (!routesBuilderClasses.isEmpty()) {
                 final ClassLoader loader = Thread.currentThread().getContextClassLoader();
                 if (!(loader instanceof QuarkusClassLoader)) {
@@ -131,8 +134,19 @@ class OpenApiJavaProcessor {
             } catch (Exception e) {
                 LOGGER.warn("Failed to configure routes due to: {}.", e.getMessage(), e);
             }
-            openAPI.produce(new AddToOpenAPIDefinitionBuildItem(new CamelRestOASFilter(ctx)));
+            openAPI.produce(new AddToOpenAPIDefinitionBuildItem(new CamelRestOASFilter(ctx),
+                    OpenAPISPIConstants.DEFAULT_DOCUMENT_NAME));
         }
+    }
+
+    @BuildStep(onlyIfNot = ExposeOpenApiEnabled.class)
+    void registerSwaggerUICamelUrl(BuildProducer<SwaggerUiUrlBuildItem> swaggerUiUrl) {
+        Config config = ConfigProvider.getConfig();
+        config.getOptionalValue("camel.rest.apiContextPath", String.class)
+                .or(() -> config.getOptionalValue("camel.rest.api-context-path", String.class))
+                .ifPresent(apiContextPath -> {
+                    swaggerUiUrl.produce(new SwaggerUiUrlBuildItem("Camel", apiContextPath));
+                });
     }
 
     public static final class ExposeOpenApiEnabled implements BooleanSupplier {
@@ -179,7 +193,7 @@ class CamelRestOASFilter implements OASFilter {
             // dump to json
             final ObjectMapper mapper = new ObjectMapper(new JsonFactory());
             mapper.enable(SerializationFeature.INDENT_OUTPUT);
-            mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
+            mapper.setDefaultPropertyInclusion(JsonInclude.Include.NON_NULL);
 
             String jsonContent = RestOpenApiSupport.getJsonFromOpenAPIAsString(openApi, bc);
             final JsonNode node = mapper.readTree(jsonContent);

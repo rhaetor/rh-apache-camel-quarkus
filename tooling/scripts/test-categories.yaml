@@ -25,6 +25,7 @@ group-01:
   - http-grouped
   - infinispan
   - infinispan-quarkus-client
+  - master-infinispan
   - jcache
   - jms-artemis-client
   - jms-artemis-ra
@@ -37,13 +38,17 @@ group-01:
 group-02:
   - aws2
   - beanio
+  - cyberark-vault
   - google-pubsub
+  - groovy-xml
   - grpc
+  - iso8583
   - jackson-avro
   - jackson-protobuf
   - jfr
   - kafka-oauth
-  - langchain4j
+  - keycloak
+  - langchain4j-agent
   - oaipmh
   - pubnub
   - protobuf
@@ -53,34 +58,33 @@ group-02:
 group-03:
   - bean-validator
   - box
+  - elasticsearch-rest-client
   - foundation-grouped
-  - core-discovery-disabled
   - freemarker
   - github
   - google
   - json-validator
+  - mail-microsoft-oauth
   - main
-  - main-collector
   - main-command-mode
-  - main-devmode
-  - main-discovery-disabled
   - main-xml-io
   - main-xml-jaxb
   - main-yaml
   - shiro
+  - twitter
   - validator
+  - vertx
 group-04:
   - arangodb
-  - debezium
-  - cassandraql
+  - debezium-grouped
   - couchdb
-  - elasticsearch-rest-client
   - influxdb
   - jms-qpid-amqp-client
   - jpa
   - jta
   - kudu
   - leveldb
+  - mdc
   - micrometer
   - minio
   - mongodb-grouped
@@ -96,9 +100,11 @@ group-05:
   - cxf-soap-grouped
   - dataformat
   - datasonnet
-  - fury
+  - fory
   - hl7
   - jaxb
+  - oauth
+  - once
   - mapstruct
   - ssh
   - soap
@@ -112,6 +118,7 @@ group-06:
   - jsonpath
   - kamelet
   - lra
+  - master-openshift
   - openstack
   - opentelemetry
   - quartz
@@ -120,14 +127,17 @@ group-06:
   - splunk
   - wasm
 group-07:
+  - cassandraql
   - dataformats-json-grouped
   - dropbox
   - geocoder
   - jslt
   - ldap
+  - langchain4j-embeddings
   - lumberjack
   - ognl
   - olingo4
+  - openai
   - optaplanner
   - pg-replication-slot
   - splunk-hec
@@ -141,21 +151,18 @@ group-08:
   - crypto-pgp
   - jq
   - langchain4j-chat
-  - master
   - master-file
-  - master-openshift
   - pdf
   - pinecone
   - saxon
   - syndication
   - telegram
   - tika
-  - twitter
-  - vertx
   - xml-jaxp
   - zendesk
 group-09:
   - activemq
+  - activemq6
   - amqp
   - debug
   - ftp
@@ -164,6 +171,7 @@ group-09:
   - jt400-mocked
   - kafka-sasl-ssl
   - kafka-ssl
+  - mina-sftp
   - paho
   - management
   - nats
@@ -175,11 +183,14 @@ group-10:
   - braintree
   - consul
   - digitalocean
+  - docling
   - fop
   - google-secret-manager
   - groovy
+  - ibm-cos
   - jolokia
   - joor
+  - langchain4j-tokenizer
   - mail
   - main-unknown-args-fail
   - main-unknown-args-ignore
@@ -188,6 +199,7 @@ group-10:
   - platform-http-proxy-ssl
   - solr
   - swift
+  - weaviate
 group-11:
   - compression-grouped
   - disruptor
@@ -195,6 +207,7 @@ group-11:
   - grok
   - jolt
   - jsonata
+  - milo
   - mustache
   - netty
   - qute
@@ -212,6 +225,8 @@ group-12:
   - csimple
   - quartz-clustered
   - knative
+  - langchain4j-web-search
+  - langchain4j-tools
   - openapi-java
   - paho-mqtt5
   - platform-http
@@ -228,6 +243,8 @@ group-13:
   - java-joor-dsl
   - jdbc-grouped
   - kubernetes
+  - langchain4j-embeddingstore
+  - milvus
   - salesforce
   - sap-netweaver
   - servicenow
@@ -235,3 +252,4 @@ group-13:
   - nitrite
   - twilio
   - pgevent
+  

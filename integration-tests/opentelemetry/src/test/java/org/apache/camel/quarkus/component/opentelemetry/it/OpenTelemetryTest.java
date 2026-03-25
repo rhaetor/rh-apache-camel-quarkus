@@ -21,19 +21,20 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import io.opentelemetry.api.trace.SpanKind;
-import io.quarkus.test.common.QuarkusTestResource;
 import io.quarkus.test.junit.QuarkusTest;
 import io.restassured.RestAssured;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
+import static io.opentelemetry.semconv.CodeAttributes.CODE_FUNCTION_NAME;
 import static org.apache.camel.quarkus.component.opentelemetry.it.OpenTelemetryTestHelper.getSpans;
 import static org.awaitility.Awaitility.await;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-@QuarkusTestResource(OpenTelemetryTestResource.class)
 @QuarkusTest
 class OpenTelemetryTest {
 
@@ -141,6 +142,32 @@ class OpenTelemetryTest {
         assertEquals(spans.get(4).get("camel.uri"), "direct://jdbcQuery");
 
         assertEquals(spans.get(5).get("parentId"), "0000000000000000");
-        assertEquals(spans.get(5).get("code.function"), "jdbcQuery");
+        assertEquals(spans.get(5).get(CODE_FUNCTION_NAME.getKey()),
+                "org.apache.camel.quarkus.component.opentelemetry.it.OpenTelemetryResource.jdbcQuery");
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = { "http", "vertx-http" })
+    public void testHttpInvocation(String httpComponent) {
+        RestAssured.given()
+                .queryParam("httpComponent", httpComponent)
+                .get("/greeting")
+                .then()
+                .statusCode(200)
+                .body(equalTo("Hello From Camel Quarkus!"));
+
+        await().atMost(30, TimeUnit.SECONDS).pollDelay(50, TimeUnit.MILLISECONDS).until(() -> getSpans().size() == 3);
+        List<Map<String, String>> spans = getSpans();
+        // Note we expect only 3 spans (as contrary to opentelemetry2 where there are 5 spans) because Quarkus Vert.x is filtered out by default
+        assertEquals(3, spans.size());
+        // Verify root doesn't have parent
+        assertEquals("0000000000000000", spans.get(2).get("parentId"));
+        // Verify the span hierarchy
+        assertEquals(spans.get(2).get("spanId"), spans.get(1).get("parentId"));
+        assertEquals(spans.get(1).get("spanId"), spans.get(0).get("parentId"));
+
+        assertEquals(SpanKind.SERVER.name(), spans.get(2).get("kind"));
+        assertEquals(SpanKind.CLIENT.name(), spans.get(1).get("kind"));
+        assertEquals(SpanKind.SERVER.name(), spans.get(0).get("kind"));
     }
 }

@@ -25,8 +25,6 @@ import java.util.stream.Stream;
 import com.github.dockerjava.api.model.ExposedPort;
 import com.github.dockerjava.api.model.HostConfig;
 import com.github.dockerjava.api.model.Ports;
-import io.quarkus.runtime.LaunchMode;
-import io.quarkus.runtime.configuration.ConfigUtils;
 import io.quarkus.test.common.QuarkusTestResourceLifecycleManager;
 import io.smallrye.config.SmallRyeConfig;
 import org.apache.camel.quarkus.test.mock.backend.MockBackendUtils;
@@ -52,8 +50,8 @@ public class AzureStorageTestResource implements QuarkusTestResourceLifecycleMan
 
     public enum AzuriteService {
         blob(10000),
-        queue(10001),
-        datalake(-1, "dfs"); // Datalake not supported by Azurite https://github.com/Azure/Azurite/issues/553
+        queue(10001);
+        //        datalake(-1, "dfs"); // Datalake not supported by Azurite https://github.com/Azure/Azurite/issues/553
 
         private final int azuritePort;
         private final String azureServiceCode;
@@ -91,7 +89,7 @@ public class AzureStorageTestResource implements QuarkusTestResourceLifecycleMan
 
     @Override
     public Map<String, String> start() {
-        final SmallRyeConfig config = ConfigUtils.configBuilder(true, LaunchMode.NORMAL).build();
+        final SmallRyeConfig config = ConfigProvider.getConfig().unwrap(SmallRyeConfig.class);
 
         final String realAzureStorageAccountName = System.getenv("AZURE_STORAGE_ACCOUNT_NAME");
         final boolean realCredentialsProvided = realAzureStorageAccountName != null

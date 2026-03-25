@@ -23,7 +23,7 @@
     <parent>
         <groupId>org.apache.camel.quarkus</groupId>
         <artifactId>camel-quarkus</artifactId>
-        <version>3.23.0-SNAPSHOT</version>
+        <version>3.35.0-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -39,13 +39,9 @@
     <modules>
         <!-- build those first -->
         <module>foundation-grouped</module>
-        <module>core-discovery-disabled</module>
         <module>main</module>
-        <module>main-devmode</module>
-        <module>main-discovery-disabled</module>
         <module>main-xml-jaxb</module>
         <module>main-xml-io</module>
-        <module>main-collector</module>
         <module>main-command-mode</module>
         <module>main-unknown-args-fail</module>
         <module>main-unknown-args-ignore</module>
@@ -53,6 +49,7 @@
 
         <!-- extensions a..z; do not remove this comment, it is important when sorting via  mvn process-resources -Pformat -->
         <module>activemq</module>
+        <module>activemq6</module>
         <module>amqp</module>
         <module>arangodb</module>
         <module>as2</module>
@@ -78,13 +75,15 @@
         <module>csimple</module>
         <module>csv</module>
         <module>cxf-soap-grouped</module>
+        <module>cyberark-vault</module>
         <module>dataformat</module>
         <module>dataformats-json-grouped</module>
         <module>datasonnet</module>
-        <module>debezium</module>
+        <module>debezium-grouped</module>
         <module>debug</module>
         <module>digitalocean</module>
         <module>disruptor</module>
+        <module>docling</module>
         <module>dropbox</module>
         <module>elasticsearch-rest-client</module>
         <module>exec</module>
@@ -92,9 +91,9 @@
         <module>file</module>
         <module>flatpack</module>
         <module>fop</module>
+        <module>fory</module>
         <module>freemarker</module>
         <module>ftp</module>
-        <module>fury</module>
         <module>geocoder</module>
         <module>git</module>
         <module>github</module>
@@ -106,16 +105,19 @@
         <module>graphql</module>
         <module>grok</module>
         <module>groovy</module>
+        <module>groovy-xml</module>
         <module>grpc</module>
         <module>hashicorp-vault</module>
         <module>hazelcast</module>
         <module>headersmap</module>
         <module>hl7</module>
         <module>http-grouped</module>
+        <module>ibm-cos</module>
         <module>infinispan</module>
         <module>infinispan-common</module>
         <module>infinispan-quarkus-client</module>
         <module>influxdb</module>
+        <module>iso8583</module>
         <module>jackson-avro</module>
         <module>jackson-protobuf</module>
         <module>jasypt</module>
@@ -148,24 +150,35 @@
         <module>kafka-sasl-ssl</module>
         <module>kafka-ssl</module>
         <module>kamelet</module>
+        <module>keycloak</module>
         <module>knative</module>
         <module>kubernetes</module>
         <module>kudu</module>
-        <module>langchain4j</module>
+        <module>langchain4j-agent</module>
         <module>langchain4j-chat</module>
+        <module>langchain4j-embeddings</module>
+        <module>langchain4j-embeddingstore</module>
+        <module>langchain4j-tokenizer</module>
+        <module>langchain4j-tools</module>
+        <module>langchain4j-web-search</module>
         <module>ldap</module>
         <module>leveldb</module>
         <module>lra</module>
         <module>lumberjack</module>
         <module>mail</module>
+        <module>mail-microsoft-oauth</module>
         <module>management</module>
         <module>mapstruct</module>
-        <module>master</module>
         <module>master-file</module>
+        <module>master-infinispan</module>
         <module>master-openshift</module>
+        <module>mdc</module>
         <module>micrometer</module>
         <module>microprofile-fault-tolerance</module>
         <module>microprofile-health</module>
+        <module>milo</module>
+        <module>milvus</module>
+        <module>mina-sftp</module>
         <module>minio</module>
         <module>mllp</module>
         <module>mongodb-grouped</module>
@@ -175,9 +188,12 @@
         <module>netty</module>
         <module>nitrite</module>
         <module>oaipmh</module>
+        <module>oauth</module>
         <module>observability-services</module>
         <module>ognl</module>
         <module>olingo4</module>
+        <module>once</module>
+        <module>openai</module>
         <module>openapi-java</module>
         <module>openstack</module>
         <module>opentelemetry</module>
@@ -240,6 +256,7 @@
         <module>vertx-websocket</module>
         <module>wasm</module>
         <module>weather</module>
+        <module>weaviate</module>
         <module>xchange</module>
         <module>xj</module>
         <module>xml-grouped</module>

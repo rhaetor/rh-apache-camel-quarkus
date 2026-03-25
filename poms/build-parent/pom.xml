@@ -23,7 +23,7 @@
     <parent>
         <groupId>org.apache.camel.quarkus</groupId>
         <artifactId>camel-quarkus-poms</artifactId>
-        <version>3.23.0-SNAPSHOT</version>
+        <version>3.35.0-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -43,6 +43,11 @@
                 <groupId>org.assertj</groupId>
                 <artifactId>assertj-core</artifactId>
                 <version>${assertj.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>commons-net</groupId>
+                <artifactId>commons-net</artifactId>
+                <version>${commons-net.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.eclipse.transformer</groupId>
@@ -91,7 +96,7 @@
                     <version>${build-helper-maven-plugin.version}</version>
                 </plugin>
                 <plugin>
-                    <groupId>org.jboss.jandex</groupId>
+                    <groupId>io.smallrye</groupId>
                     <artifactId>jandex-maven-plugin</artifactId>
                     <version>${jandex-maven-plugin.version}</version>
                 </plugin>

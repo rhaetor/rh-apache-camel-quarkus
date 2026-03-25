@@ -59,6 +59,10 @@ public abstract class WireMockTestResourceLifecycleManager implements QuarkusTes
 
             if (isRecordingEnabled()) {
                 String recordTargetBaseUrl = getRecordTargetBaseUrl();
+                //url can not end with slash, that would cause recording to fail
+                recordTargetBaseUrl = (recordTargetBaseUrl != null && recordTargetBaseUrl.endsWith("/"))
+                        ? recordTargetBaseUrl.substring(0, recordTargetBaseUrl.length() - 1) : recordTargetBaseUrl;
+
                 if (recordTargetBaseUrl != null) {
                     LOG.infof("Enabling WireMock recording for %s", recordTargetBaseUrl);
                     server.startRecording(recordSpec()
@@ -95,6 +99,8 @@ public abstract class WireMockTestResourceLifecycleManager implements QuarkusTes
                 SnapshotRecordResult recordResult = server.stopRecording();
 
                 List<StubMapping> stubMappings = recordResult.getStubMappings();
+                processRecordedStubMappings(stubMappings);
+
                 if (isDeleteRecordedMappingsOnError()) {
                     for (StubMapping mapping : stubMappings) {
                         int status = mapping.getResponse().getStatus();
@@ -207,6 +213,12 @@ public abstract class WireMockTestResourceLifecycleManager implements QuarkusTes
      * Customizes the {@link WireMockConfiguration} that will be used to create the next {@Link WireMockServer}.
      */
     protected void customizeWiremockConfiguration(WireMockConfiguration config) {
+    }
+
+    /**
+     * Hook to get a handle on any record stub mappings. Useful for performing stub post-processing or cleanup tasks.
+     */
+    protected void processRecordedStubMappings(List<StubMapping> stubMappings) {
     }
 
     /**

@@ -20,7 +20,17 @@ import io.quarkus.runtime.annotations.RegisterForReflection;
 
 @RegisterForReflection(fields = false)
 public class BindToRegistryBean {
+    private final String name;
+
+    public BindToRegistryBean() {
+        this(null);
+    }
+
+    public BindToRegistryBean(String name) {
+        this.name = name;
+    }
+
     public String hello(String name) {
-        return "Hello " + name;
+        return "Hello " + (this.name == null ? name : this.name);
     }
 }

@@ -16,13 +16,9 @@
  */
 package org.apache.camel.quarkus.component.azure.key.vault.it;
 
+import java.net.URI;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import com.azure.core.exception.HttpResponseException;
-import com.azure.core.implementation.ReflectiveInvoker;
-import com.azure.core.implementation.http.UnexpectedExceptionInformation;
-import com.azure.core.implementation.http.rest.ResponseExceptionConstructorCache;
-import com.azure.security.keyvault.secrets.implementation.models.KeyVaultErrorException;
 import com.azure.security.keyvault.secrets.models.KeyVaultSecret;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.event.Observes;
@@ -41,6 +37,7 @@ import org.apache.camel.ProducerTemplate;
 import org.apache.camel.ResolveEndpointFailedException;
 import org.apache.camel.component.azure.key.vault.KeyVaultConstants;
 import org.apache.camel.impl.event.CamelContextReloadedEvent;
+import org.eclipse.microprofile.config.ConfigProvider;
 import org.jboss.logging.Logger;
 
 @Path("/azure-key-vault")
@@ -144,15 +141,11 @@ public class AzureKeyVaultResource {
         return contextReloaded.get();
     }
 
+    @Path("/configProperty/{propertyName}")
     @GET
-    @Path("exception/cache")
     @Produces(MediaType.TEXT_PLAIN)
-    public boolean cachedHttpResponseException() {
-        UnexpectedExceptionInformation exceptionInformation = new UnexpectedExceptionInformation(
-                KeyVaultErrorException.class);
-        Class<? extends HttpResponseException> exceptionType = exceptionInformation.getExceptionType();
-        ReflectiveInvoker reflectiveInvoker = new ResponseExceptionConstructorCache().get(exceptionType,
-                exceptionInformation.getExceptionBodyType());
-        return reflectiveInvoker != null;
+    public Response configProperty(@PathParam("propertyName") String propertyName) throws Exception {
+        String propertyValue = ConfigProvider.getConfig().getValue(propertyName, String.class);
+        return Response.ok(new URI("https://camel.apache.org/")).entity(propertyValue).build();
     }
 }

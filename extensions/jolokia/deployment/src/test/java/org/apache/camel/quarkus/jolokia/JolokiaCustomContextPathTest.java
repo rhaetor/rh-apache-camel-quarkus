@@ -34,11 +34,4 @@ class JolokiaCustomContextPathTest {
                 .then()
                 .statusCode(200);
     }
-
-    @Test
-    void managementEndpointContextPathAccessible() {
-        RestAssured.get("/q/test")
-                .then()
-                .statusCode(200);
-    }
 }

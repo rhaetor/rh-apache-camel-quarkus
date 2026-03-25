@@ -20,7 +20,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -73,7 +72,7 @@ import static org.apache.commons.lang3.ClassUtils.getPackageName;
 public class CamelNativeImageProcessor {
     private static final Logger LOGGER = LoggerFactory.getLogger(CamelNativeImageProcessor.class);
 
-    private static final List<Class<?>> CAMEL_REFLECTIVE_CLASSES = Arrays.asList(
+    private static final List<Class<?>> CAMEL_REFLECTIVE_CLASSES = List.<Class<?>> of(
             Endpoint.class,
             Consumer.class,
             Producer.class,
@@ -98,7 +97,7 @@ public class CamelNativeImageProcessor {
         CAMEL_REFLECTIVE_CLASSES.stream()
                 .map(Class::getName)
                 .map(DotName::createSimple)
-                .map(view::getAllKnownImplementors)
+                .map(view::getAllKnownImplementations)
                 .flatMap(Collection::stream)
                 .filter(CamelSupport::isPublic)
                 .forEach(v -> reflectiveClass
@@ -108,23 +107,7 @@ public class CamelNativeImageProcessor {
         List<ClassInfo> converterClasses = view.getAnnotations(converter)
                 .stream()
                 .filter(ai -> ai.target().kind() == Kind.CLASS)
-                .filter(ai -> {
-                    AnnotationValue av = ai.value("loader");
-                    boolean isLoader = av != null && av.asBoolean();
-                    // filter out camel-base converters which are automatically inlined in the
-                    // CoreStaticTypeConverterLoader
-                    // need to revisit with Camel 3.0.0-M3 which should improve this area
-                    if (ai.target().asClass().name().toString().startsWith("org.apache.camel.converter.")) {
-                        LOGGER.debug("Ignoring core " + ai + " " + ai.target().asClass().name());
-                        return false;
-                    } else if (isLoader) {
-                        LOGGER.debug("Ignoring " + ai + " " + ai.target().asClass().name());
-                        return false;
-                    } else {
-                        LOGGER.debug("Accepting " + ai + " " + ai.target().asClass().name());
-                        return true;
-                    }
-                })
+                .filter(this::shouldRegisterConverter)
                 .map(ai -> ai.target().asClass())
                 .collect(Collectors.toList());
 
@@ -145,6 +128,24 @@ public class CamelNativeImageProcessor {
                         "org.apache.camel.support.AbstractExchange",
                         org.apache.camel.support.MessageSupport.class.getName())
                         .methods().build());
+    }
+
+    private boolean shouldRegisterConverter(org.jboss.jandex.AnnotationInstance ai) {
+        AnnotationValue av = ai.value("loader");
+        boolean isLoader = av != null && av.asBoolean();
+        // filter out camel-base converters which are automatically inlined in the
+        // CoreStaticTypeConverterLoader
+        // need to revisit with Camel 3.0.0-M3 which should improve this area
+        if (ai.target().asClass().name().toString().startsWith("org.apache.camel.converter.")) {
+            LOGGER.debug("Ignoring core " + ai + " " + ai.target().asClass().name());
+            return false;
+        } else if (isLoader) {
+            LOGGER.debug("Ignoring " + ai + " " + ai.target().asClass().name());
+            return false;
+        } else {
+            LOGGER.debug("Accepting " + ai + " " + ai.target().asClass().name());
+            return true;
+        }
     }
 
     @BuildStep
@@ -182,7 +183,7 @@ public class CamelNativeImageProcessor {
                 .forEach(service -> {
 
                     String packageName = getPackageName(service.type);
-                    String jsonPath = String.format("META-INF/%s/%s.json", packageName.replace('.', '/'), service.name);
+                    String jsonPath = "META-INF/%s/%s.json".formatted(packageName.replace('.', '/'), service.name);
 
                     if (runtimeCatalog.components()
                             && service.path.startsWith(DefaultComponentResolver.RESOURCE_PATH)) {
@@ -201,7 +202,8 @@ public class CamelNativeImageProcessor {
                         resources.add(new NativeImageResourceBuildItem(jsonPath));
                     }
                     if (runtimeCatalog.transformers()
-                            && service.path.startsWith(DefaultTransformerResolver.DATA_TYPE_TRANSFORMER_RESOURCE_PATH)) {
+                            && service.path
+                                    .startsWith(DefaultTransformerResolver.DATA_TYPE_TRANSFORMER_RESOURCE_PATH)) {
                         resources.add(new NativeImageResourceBuildItem(jsonPath));
                     }
                 });

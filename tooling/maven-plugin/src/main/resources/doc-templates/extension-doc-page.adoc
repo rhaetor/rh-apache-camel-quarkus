@@ -24,10 +24,11 @@ endif::[]
 == What's inside
 
 [#list models as model]
-* [=camelBitLink(model, models)][[=model.title][#if model.kind != "other" ] [=humanReadableKind(model.kind)][/#if]][#if model.kind == "component" ], URI syntax: `[=model.syntax]`[/#if]
+[#assign link = camelBitLink(model, models)]
+[#if link?starts_with("xref:")]* [=link][[=model.title][#if model.kind != "other" ] [=humanReadableKind(model.kind)][/#if]][#if model.kind == "component" ], URI syntax: `[=model.syntax]`[/#if][#else]* [=model.title][/#if]
 [/#list]
 
-Please refer to the above link[#if models?size != 1]s[/#if] for usage and configuration details.
+[#if link?starts_with("xref:")]Please refer to the above link[#if models?size != 1]s[/#if] for usage and configuration details.[/#if]
 [/#if]
 
 [id="extensions-[=artifactIdBase]-maven-coordinates"]
@@ -101,17 +102,19 @@ You will also need to enable serialization for the exception classes that you in
 [#if activatesQuarkusLangChain4jBom ]
 
 [id="extensions-[=artifactIdBase]-quarkus-langchain4j-bom"]
-== Ensure Quarkus LangChain4j dependencies version alignment with the Bom
+== LangChain4j usage
 
-In order to ensure alignment across all Quarkus and LangChain4j related dependencies, it is recommended to import the Quarkus LangChain4j bom as below:
-[source,xml]
+=== Dependency management
+
+In order to ensure alignment across all Quarkus and LangChain4j related dependencies, it is recommended to import the LangChain4j BOM as below:
+[source,xml,subs=attributes+]
 ----
 <dependencyManagement>
   <dependencies>
     <dependency>
-      <groupId>io.quarkiverse.langchain4j</groupId>
-      <artifactId>quarkus-langchain4j-bom</artifactId>
-      <version>${insert your version here}</version>
+      <groupId>dev.langchain4j</groupId>
+      <artifactId>langchain4j-bom</artifactId>
+      <version>{langchain4j-version}</version>
       <type>pom</type>
       <scope>import</scope>
     </dependency>
@@ -121,7 +124,12 @@ In order to ensure alignment across all Quarkus and LangChain4j related dependen
 ----
 
 Note that the import order is paramount when using maven `dependencyManagement`.
-As such, one might need to import the `quarkus-langchain4j-bom` before other related Camel and Quarkus boms.
+As such, one might need to import the `langchain4j-bom` before other related Camel and Quarkus BOMs.
+
+=== Quarkus LangChain4j support
+
+WARNING: At present, this extension is neither tested with nor intended to be used in conjunction with any Quarkus LangChain4j extensions.
+Consequently, both JVM and native modes may exhibit unexpected behaviour or fail to function correctly in such configurations.
 [/#if]
 [#if configuration?? || configOptions?size != 0 ]
 

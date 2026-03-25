@@ -22,7 +22,7 @@
     <parent>
         <groupId>org.apache.camel.quarkus</groupId>
         <artifactId>camel-quarkus-jolokia-parent</artifactId>
-        <version>3.23.0-SNAPSHOT</version>
+        <version>3.35.0-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -58,6 +58,7 @@
                 <configuration>
                     <parentFirstArtifacts>
                         <parentFirstArtifact>org.jolokia:jolokia-agent-jvm</parentFirstArtifact>
+                        <parentFirstArtifact>org.jolokia:jolokia-core</parentFirstArtifact>
                         <parentFirstArtifact>org.jolokia:jolokia-json</parentFirstArtifact>
                         <parentFirstArtifact>org.jolokia:jolokia-server-core</parentFirstArtifact>
                         <parentFirstArtifact>org.jolokia:jolokia-server-detector</parentFirstArtifact>

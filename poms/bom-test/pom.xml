@@ -23,7 +23,7 @@
     <parent>
         <groupId>org.apache.camel.quarkus</groupId>
         <artifactId>camel-quarkus-poms</artifactId>
-        <version>3.23.0-SNAPSHOT</version>
+        <version>3.35.0-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -36,7 +36,7 @@
         <!-- This property is kept in sync with project.version by the release plugin -->
         <!-- Do not change to project.version because otherwise the end user apps having our BOM as
         parent (rather than importing it) will stop working -->
-        <camel-quarkus.version>3.23.0-SNAPSHOT</camel-quarkus.version>
+        <camel-quarkus.version>3.35.0-SNAPSHOT</camel-quarkus.version>
     </properties>
 
     <dependencyManagement>
@@ -45,13 +45,6 @@
                 <groupId>io.quarkus</groupId>
                 <artifactId>quarkus-bom-test</artifactId>
                 <version>${quarkus.version}</version>
-                <type>pom</type>
-                <scope>import</scope>
-            </dependency>
-            <dependency>
-                <groupId>io.quarkiverse.amazonservices</groupId>
-                <artifactId>quarkus-amazon-services-bom</artifactId>
-                <version>${quarkiverse-amazonservices.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
@@ -71,9 +64,29 @@
             </dependency>
 
             <dependency>
-                <groupId>io.quarkiverse.langchain4j</groupId>
-                <artifactId>quarkus-langchain4j-ollama</artifactId>
-                <version>${quarkiverse-langchain4j.version}</version>
+                <groupId>dev.langchain4j</groupId>
+                <artifactId>langchain4j-embeddings-all-minilm-l6-v2</artifactId>
+                <version>${langchain4j-beta.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>dev.langchain4j</groupId>
+                <artifactId>langchain4j-ollama</artifactId>
+                <version>${langchain4j.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>dev.langchain4j</groupId>
+                <artifactId>langchain4j-openai</artifactId>
+                <version>${langchain4j.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>dev.langchain4j</groupId>
+                <artifactId>langchain4j-qdrant</artifactId>
+                <version>${langchain4j-beta.version}</version>            
+            </dependency>
+            <dependency>
+                <groupId>dev.langchain4j</groupId>
+                <artifactId>langchain4j-web-search-engine-tavily</artifactId>
+                <version>${langchain4j-beta.version}</version>
             </dependency>
             <dependency>
                 <groupId>io.quarkiverse.micrometer.registry</groupId>
@@ -109,10 +122,6 @@
                         <groupId>org.testcontainers</groupId>
                     </exclusion>
                     <exclusion>
-                        <artifactId>quarkus-junit4-mock</artifactId>
-                        <groupId>io.quarkus</groupId>
-                    </exclusion>
-                    <exclusion>
                         <artifactId>rest-assured</artifactId>
                         <groupId>io.rest-assured</groupId>
                     </exclusion>
@@ -131,6 +140,11 @@
             <dependency>
                 <groupId>org.apache.camel.quarkus</groupId>
                 <artifactId>camel-quarkus-integration-tests-support-azure</artifactId>
+                <version>${camel-quarkus.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.camel.quarkus</groupId>
+                <artifactId>camel-quarkus-integration-tests-support-sftp</artifactId>
                 <version>${camel-quarkus.version}</version>
             </dependency>
             <dependency>
@@ -156,23 +170,19 @@
             </dependency>
             <dependency>
                 <groupId>org.apache.camel.quarkus</groupId>
-                <artifactId>camel-quarkus-integration-tests-support-custom-log-component</artifactId>
-                <version>${camel-quarkus.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.camel.quarkus</groupId>
-                <artifactId>camel-quarkus-integration-tests-support-custom-main-listener</artifactId>
-                <version>${camel-quarkus.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.camel.quarkus</groupId>
-                <artifactId>camel-quarkus-integration-tests-support-custom-routes-collector</artifactId>
-                <version>${camel-quarkus.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.camel.quarkus</groupId>
                 <artifactId>camel-quarkus-integration-tests-support-custom-type-converter</artifactId>
                 <version>${camel-quarkus.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.camel.quarkus</groupId>
+                <artifactId>camel-quarkus-integration-tests-support-debezium</artifactId>
+                <version>${camel-quarkus.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.camel.quarkus</groupId>
+                <artifactId>camel-quarkus-integration-tests-support-debezium</artifactId>
+                <version>${camel-quarkus.version}</version>
+                <type>test-jar</type>
             </dependency>
             <dependency>
                 <groupId>org.apache.camel.quarkus</groupId>
@@ -285,6 +295,11 @@
                 <groupId>org.apache.ftpserver</groupId>
                 <artifactId>ftplet-api</artifactId>
                 <version>${ftpserver.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.groovy</groupId>
+                <artifactId>groovy-json</artifactId>
+                <version>${groovy.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.apache.pdfbox</groupId>
@@ -434,6 +449,18 @@
                 <groupId>com.unboundid</groupId>
                 <artifactId>unboundid-ldapsdk</artifactId>
                 <version>${unboundid-ldapsdk.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>com.microsoft.graph</groupId>
+                <artifactId>microsoft-graph</artifactId>
+                <version>${microsoft.graph.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>com.microsoft.graph</groupId>
+                <artifactId>microsoft-graph-auth</artifactId>
+                <version>${microsoft.graph.auth.version}</version>
                 <scope>test</scope>
             </dependency>
         </dependencies>

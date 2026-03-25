@@ -21,15 +21,25 @@ import java.io.File;
 import io.quarkus.test.common.QuarkusTestResource;
 import io.quarkus.test.junit.QuarkusTest;
 import io.restassured.RestAssured;
+import org.eclipse.microprofile.config.ConfigProvider;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 @QuarkusTest
 @QuarkusTestResource(JfrTestResource.class)
 class JfrTest {
+
+    @BeforeEach
+    public void beforeEach() {
+        assumeTrue(ConfigProvider.getConfig()
+                .getValue("quarkus.camel.jfr.startup-recorder-recording", boolean.class),
+                "Flight recorder is not available");
+    }
 
     @Test
     public void testflightRecorderRecording() {

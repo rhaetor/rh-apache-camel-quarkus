@@ -22,7 +22,7 @@
     <parent>
         <groupId>org.apache.camel.quarkus</groupId>
         <artifactId>camel-quarkus-google-pubsub-parent</artifactId>
-        <version>3.23.0-SNAPSHOT</version>
+        <version>3.35.0-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -33,22 +33,6 @@
         <camel.quarkus.jvmSince>1.0.0</camel.quarkus.jvmSince>
         <camel.quarkus.nativeSince>1.5.0</camel.quarkus.nativeSince>
     </properties>
-
-    <dependencyManagement>
-        <dependencies>
-            <!-- https://github.com/micrometer-metrics/micrometer/issues/2249 -->
-            <dependency>
-                <groupId>io.quarkus</groupId>
-                <artifactId>quarkus-micrometer</artifactId>
-                <exclusions>
-                    <exclusion>
-                        <groupId>com.google.cloud</groupId>
-                        <artifactId>google-cloud-monitoring</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-        </dependencies>
-    </dependencyManagement>
 
     <dependencies>
         <dependency>

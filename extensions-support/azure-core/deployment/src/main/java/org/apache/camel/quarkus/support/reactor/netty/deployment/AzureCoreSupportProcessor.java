@@ -17,6 +17,7 @@
 package org.apache.camel.quarkus.support.reactor.netty.deployment;
 
 import java.io.IOException;
+import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.function.BooleanSupplier;
 import java.util.stream.Collectors;
@@ -25,6 +26,8 @@ import java.util.stream.Stream;
 import com.azure.core.annotation.ServiceInterface;
 import com.azure.core.exception.HttpResponseException;
 import com.azure.core.http.HttpClientProvider;
+import com.azure.json.JsonSerializable;
+import com.azure.xml.XmlSerializable;
 import io.quarkus.deployment.annotations.BuildProducer;
 import io.quarkus.deployment.annotations.BuildStep;
 import io.quarkus.deployment.builditem.CombinedIndexBuildItem;
@@ -32,10 +35,10 @@ import io.quarkus.deployment.builditem.IndexDependencyBuildItem;
 import io.quarkus.deployment.builditem.nativeimage.NativeImageProxyDefinitionBuildItem;
 import io.quarkus.deployment.builditem.nativeimage.NativeImageResourceBuildItem;
 import io.quarkus.deployment.builditem.nativeimage.ReflectiveClassBuildItem;
-import io.quarkus.deployment.builditem.nativeimage.RuntimeReinitializedClassBuildItem;
+import io.quarkus.deployment.builditem.nativeimage.RuntimeInitializedClassBuildItem;
 import io.quarkus.deployment.builditem.nativeimage.ServiceProviderBuildItem;
 import io.quarkus.deployment.util.ServiceUtil;
-import io.quarkus.utilities.OS;
+import io.smallrye.common.os.OS;
 import org.jboss.jandex.ClassInfo;
 import org.jboss.jandex.DotName;
 
@@ -70,6 +73,20 @@ public class AzureCoreSupportProcessor {
 
         reflectiveClasses.produce(ReflectiveClassBuildItem.builder(httpResponseExceptionClasses.toArray(new String[0]))
                 .methods()
+                .build());
+
+        // implementations of serializers are used during errors reporting
+        LinkedHashSet<String> serializers = new LinkedHashSet<>(
+                combinedIndex.getIndex().getAllKnownImplementations(JsonSerializable.class).stream()
+                        .map(ci -> ci.name().toString())
+                        .toList());
+        serializers.addAll(combinedIndex.getIndex().getAllKnownImplementations(XmlSerializable.class).stream()
+                .map(ci -> ci.name().toString())
+                .toList());
+
+        reflectiveClasses.produce(ReflectiveClassBuildItem.builder(serializers.toArray(new String[0]))
+                .methods()
+                .fields()
                 .build());
     }
 
@@ -113,26 +130,27 @@ public class AzureCoreSupportProcessor {
                 .forEach(proxyDefinitions::produce);
     }
 
-    @BuildStep(onlyIf = Msal4jIsPresent.class)
-    void enableLoadingOfNativeLibraries(BuildProducer<RuntimeReinitializedClassBuildItem> runtimeReinitializedClass) {
-        OS os = OS.determineOS();
+    @BuildStep(onlyIf = Msal4jAndIdentityIsPresent.class)
+    void enableLoadingOfNativeLibraries(BuildProducer<RuntimeInitializedClassBuildItem> runtimeInitializedClass) {
+        OS os = OS.current();
         if (os.equals(OS.LINUX) || os.equals(OS.MAC)) {
             String iSecurityLibraryClassName = "com.microsoft.aad.msal4jextensions.persistence.%s.ISecurityLibrary"
                     .formatted(os.name().toLowerCase());
-            runtimeReinitializedClass.produce(new RuntimeReinitializedClassBuildItem(iSecurityLibraryClassName));
+            runtimeInitializedClass.produce(new RuntimeInitializedClassBuildItem(iSecurityLibraryClassName));
         }
 
         if (os.equals(OS.WINDOWS)) {
-            runtimeReinitializedClass.produce(new RuntimeReinitializedClassBuildItem("com.sun.jna.platform.win32.Crypt32"));
-            runtimeReinitializedClass.produce(new RuntimeReinitializedClassBuildItem("com.sun.jna.platform.win32.Kernel32"));
+            runtimeInitializedClass.produce(new RuntimeInitializedClassBuildItem("com.sun.jna.platform.win32.Crypt32"));
+            runtimeInitializedClass.produce(new RuntimeInitializedClassBuildItem("com.sun.jna.platform.win32.Kernel32"));
         }
     }
 
-    public static final class Msal4jIsPresent implements BooleanSupplier {
+    public static final class Msal4jAndIdentityIsPresent implements BooleanSupplier {
         @Override
         public boolean getAsBoolean() {
             try {
                 Thread.currentThread().getContextClassLoader().loadClass("com.microsoft.aad.msal4j.Credential");
+                Thread.currentThread().getContextClassLoader().loadClass("com.azure.identity.implementation.IdentityClient");
                 return true;
             } catch (ClassNotFoundException e) {
                 return false;
