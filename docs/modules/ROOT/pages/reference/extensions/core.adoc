@@ -133,7 +133,7 @@ As such, the class `PropertiesCustomBeanWithSetterInjection` needs to be link:ht
 a|icon:lock[title=Fixed at build time] [[quarkus-camel-service-discovery-exclude-patterns]]`link:#quarkus-camel-service-discovery-exclude-patterns[quarkus.camel.service.discovery.exclude-patterns]`
 
 A comma-separated list of Ant-path style patterns to match Camel service definition files in the classpath. The
-services defined in the matching files will *not* be discoverable via the **`org.apache.camel.spi.FactoryFinder`
+services defined in the matching files will *not* be discoverable via the `org.apache.camel.spi.FactoryFinder`
 mechanism.
 
 The excludes have higher precedence than includes. The excludes defined here can also be used to veto the
