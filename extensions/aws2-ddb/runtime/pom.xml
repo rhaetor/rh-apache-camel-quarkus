@@ -22,13 +22,13 @@
     <parent>
         <groupId>org.apache.camel.quarkus</groupId>
         <artifactId>camel-quarkus-aws2-ddb-parent</artifactId>
-        <version>3.35.0-SNAPSHOT</version>
+        <version>3.40.0-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
     <artifactId>camel-quarkus-aws2-ddb</artifactId>
     <name>Camel Quarkus :: AWS 2 DynamoDB :: Runtime</name>
-    <description>Store and retrieve data from AWS DynamoDB service or receive messages from AWS DynamoDB Stream using AWS SDK version 2.x.</description>
+    <description>Store and retrieve data from AWS DynamoDB. Receive messages from AWS DynamoDB Stream.</description>
 
     <properties>
         <camel.quarkus.jvmSince>1.0.0</camel.quarkus.jvmSince>

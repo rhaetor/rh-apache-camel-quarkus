@@ -22,12 +22,13 @@
     <parent>
         <groupId>org.apache.camel.quarkus</groupId>
         <artifactId>camel-quarkus-http-parent</artifactId>
-        <version>3.35.0-SNAPSHOT</version>
+        <version>3.40.0-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
     <artifactId>camel-quarkus-http</artifactId>
     <name>Camel Quarkus :: HTTP :: Runtime</name>
+    <description>Send requests to external HTTP servers using Apache HTTP Client 5.x.</description>
 
     <properties>
         <camel.quarkus.jvmSince>1.0.0</camel.quarkus.jvmSince>

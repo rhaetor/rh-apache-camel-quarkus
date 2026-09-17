@@ -44,3 +44,11 @@ quarkus.log*
 
 # Camel Quarkus Performance Regression Reports
 perf-regression-report@*.txt
+
+# Claude
+.claude
+CLAUDE.local.md
+
+# Bob
+.bob
+.mvn/.develocity/

@@ -31,6 +31,7 @@ updates:
     directory: "/"
     schedule:
       interval: "daily"
+    open-pull-requests-limit: 20
     registries:
       - maven-central
     allow:
@@ -45,6 +46,7 @@ updates:
       - dependency-name: "io.swagger.codegen.v3:swagger-codegen-generators"
       - dependency-name: "org.amqphub.quarkus:quarkus-qpid-jms-bom"
       - dependency-name: "org.apache.camel.kamelets:camel-kamelets"
+      - dependency-name: "io.micrometer:micrometer-tracing"
       - dependency-name: "org.jolokia:jolokia-agent-jvm"
       # Test dependencies
       - dependency-name: "org.wiremock:wiremock-standalone"
@@ -57,9 +59,12 @@ updates:
       - dependency-name: "org.zeroturnaround:zt-exec"
       - dependency-name: "com.microsoft.graph:microsoft-graph"
       - dependency-name: "com.microsoft.graph:microsoft-graph-auth"
+      # Maven extensions
+      - dependency-name: "com.gradle:develocity-maven-extension"
+      - dependency-name: "com.gradle:common-custom-user-data-maven-extension"
+      - dependency-name: "eu.maveniverse.maven.scalpel:extension"
       # Maven plugins
-      - dependency-name: "*:*-maven-plugin"
-      - dependency-name: "org.apache.maven.plugins:*"
+      - dependency-name: "*:*-plugin"
     ignore:
       # Maven plugins
       # Quarkus is upgraded manually

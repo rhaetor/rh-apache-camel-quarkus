@@ -19,14 +19,12 @@ package org.apache.camel.quarkus.core.runtime;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.io.Writer;
-import java.util.Map;
 import java.util.Properties;
 
-import io.quarkus.test.QuarkusUnitTest;
+import io.quarkus.test.QuarkusExtensionTest;
 import jakarta.inject.Inject;
 import org.apache.camel.CamelContext;
 import org.apache.camel.impl.debugger.BacklogTracer;
-import org.apache.camel.spi.Registry;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.Asset;
 import org.jboss.shrinkwrap.api.asset.StringAsset;
@@ -36,19 +34,16 @@ import org.junit.jupiter.api.extension.RegisterExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class CamelTraceTest {
+class CamelTraceTest {
     @RegisterExtension
-    static final QuarkusUnitTest CONFIG = new QuarkusUnitTest()
+    static final QuarkusExtensionTest CONFIG = new QuarkusExtensionTest()
             .setArchiveProducer(() -> ShrinkWrap.create(JavaArchive.class)
                     .addAsResource(applicationProperties(), "application.properties"));
 
     @Inject
-    Registry registry;
-
-    @Inject
     CamelContext camelContext;
 
-    public static Asset applicationProperties() {
+    static Asset applicationProperties() {
         Writer writer = new StringWriter();
 
         Properties props = new Properties();
@@ -65,8 +60,8 @@ public class CamelTraceTest {
     }
 
     @Test
-    public void testTraceConfiguration() {
-        BacklogTracer tracer = getBacklogTracer(camelContext);
+    void testTraceConfiguration() {
+        BacklogTracer tracer = camelContext.getCamelContextExtension().getContextPlugin(BacklogTracer.class);
 
         assertThat(camelContext.isBacklogTracing()).isTrue();
         assertThat(camelContext.isBacklogTracingStandby()).isFalse();
@@ -75,20 +70,7 @@ public class CamelTraceTest {
         assertThat(tracer.getBacklogSize()).isEqualTo(100);
         assertThat(tracer.getTracePattern()).isNull();
         assertThat(tracer.getTraceFilter()).isNull();
-    }
-
-    private BacklogTracer getBacklogTracer(CamelContext camelContext) {
-        BacklogTracer tracer = null;
-        if (registry != null) {
-            // lookup in registry
-            Map<String, BacklogTracer> map = registry.findByTypeWithName(BacklogTracer.class);
-            if (map.size() == 1) {
-                tracer = map.values().iterator().next();
-            }
-        }
-        if (tracer == null) {
-            tracer = camelContext.getCamelContextExtension().getContextPlugin(BacklogTracer.class);
-        }
-        return tracer;
+        assertThat(tracer.isActivityEnabled()).isFalse();
+        assertThat(tracer.getActivitySize()).isEqualTo(100);
     }
 }

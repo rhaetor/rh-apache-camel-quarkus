@@ -1,0 +1,177 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.apache.camel.quarkus.component.support.langchain4j.ql4j.deployment;
+
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import dev.langchain4j.guardrail.Guardrail;
+import dev.langchain4j.guardrail.InputGuardrail;
+import dev.langchain4j.guardrail.OutputGuardrail;
+import dev.langchain4j.model.chat.ChatModel;
+import io.quarkiverse.langchain4j.RegisterAiService;
+import io.quarkiverse.langchain4j.deployment.ExcludeFromImpliedAiServiceBuildItem;
+import io.quarkiverse.langchain4j.deployment.items.SelectedChatModelProviderBuildItem;
+import io.quarkiverse.langchain4j.runtime.NamedConfigUtil;
+import io.quarkus.arc.deployment.SyntheticBeanBuildItem;
+import io.quarkus.arc.deployment.UnremovableBeanBuildItem;
+import io.quarkus.deployment.annotations.BuildProducer;
+import io.quarkus.deployment.annotations.BuildStep;
+import io.quarkus.deployment.annotations.ExecutionTime;
+import io.quarkus.deployment.annotations.Record;
+import io.quarkus.deployment.builditem.CombinedIndexBuildItem;
+import io.quarkus.deployment.builditem.SystemPropertyBuildItem;
+import io.quarkus.deployment.builditem.nativeimage.ReflectiveClassBuildItem;
+import io.quarkus.deployment.pkg.steps.NativeOrNativeSourcesBuild;
+import jakarta.inject.Singleton;
+import org.apache.camel.quarkus.component.support.langchain4j.ql4j.QuarkusLangchain4jRecorder;
+import org.apache.camel.quarkus.core.deployment.spi.CamelBeanQualifierResolverBuildItem;
+import org.jboss.jandex.AnnotationInstance;
+import org.jboss.jandex.AnnotationTarget;
+import org.jboss.jandex.ClassInfo;
+import org.jboss.jandex.DotName;
+import org.jboss.jandex.IndexView;
+import org.jboss.logging.Logger;
+
+import static io.quarkus.arc.deployment.UnremovableBeanBuildItem.beanClassNames;
+
+class SupportLangchain4jQl4jProcessor {
+    private static final DotName REGISTER_AI_SERVICES_DOTNAME = DotName.createSimple(RegisterAiService.class);
+    private static final DotName JSON_EXTRACTOR_OUTPUT_GUARDRAIL = DotName
+            .createSimple("dev.langchain4j.guardrails.JsonExtractorOutputGuardrail");
+    private static final DotName AI_AGENT_WITHOUT_MEMORY_SERVICE = DotName
+            .createSimple("org.apache.camel.component.langchain4j.agent.api.AiAgentWithoutMemoryService");
+    private static final Logger LOG = Logger.getLogger(SupportLangchain4jQl4jProcessor.class);
+
+    @BuildStep
+    SystemPropertyBuildItem enforceJaxRsHttpClient() {
+        LOG.infof("Quarkus LangChain4j detected - enforcing JAX-RS HTTP client factory");
+        return new SystemPropertyBuildItem("langchain4j.http.clientBuilderFactory",
+                "io.quarkiverse.langchain4j.jaxrsclient.JaxRsHttpClientBuilderFactory");
+    }
+
+    @BuildStep
+    @SuppressWarnings("unchecked")
+    @Record(ExecutionTime.STATIC_INIT)
+    void registerLangChain4jAiServiceTypesForReflection(
+            CombinedIndexBuildItem combinedIndex,
+            BuildProducer<SyntheticBeanBuildItem> syntheticBeans,
+            QuarkusLangchain4jRecorder recorder) {
+        IndexView index = combinedIndex.getIndex();
+        // Guardrails are instantiated dynamically
+        Set<DotName> guardrailTypes = index.getAllKnownImplementations(InputGuardrail.class)
+                .stream()
+                .map(ClassInfo::name)
+                .collect(Collectors.toSet());
+
+        index.getAllKnownImplementations(OutputGuardrail.class)
+                .stream()
+                .map(ClassInfo::name)
+                .forEach(guardrailTypes::add);
+
+        index.getAllKnownSubclasses(JSON_EXTRACTOR_OUTPUT_GUARDRAIL)
+                .stream()
+                .map(ClassInfo::name)
+                .forEach(guardrailTypes::add);
+
+        guardrailTypes.stream()
+                .filter(s -> !s.equals(JSON_EXTRACTOR_OUTPUT_GUARDRAIL))
+                .forEach(s -> {
+                    try {
+                        Class<Guardrail<?, ?>> guardrailClass;
+                        guardrailClass = (Class<Guardrail<?, ?>>) Thread.currentThread()
+                                .getContextClassLoader()
+                                .loadClass(s.toString());
+                        syntheticBeans
+                                .produce(SyntheticBeanBuildItem.configure(s)
+                                        .scope(Singleton.class)
+                                        .named("GuardrailSynthetic" + s.local())
+                                        .runtimeValue(recorder.instantiateGuardrails(guardrailClass))
+                                        .done());
+                    } catch (ClassNotFoundException e) {
+                        throw new RuntimeException(e);
+                    }
+                });
+    }
+
+    @BuildStep(onlyIf = NativeOrNativeSourcesBuild.class)
+    void registerQuarkusLangchain4jNativeSupport(
+            CombinedIndexBuildItem combinedIndex,
+            BuildProducer<ReflectiveClassBuildItem> reflectiveClasses) {
+
+        IndexView index = combinedIndex.getIndex();
+
+        // Discover all inner classes of QuarkusJsonCodecFactory
+        List<String> codecFactoryClasses = index.getKnownClasses()
+                .stream()
+                .map(classInfo -> classInfo.name().toString())
+                .filter(n -> n.startsWith("io.quarkiverse.langchain4j.QuarkusJsonCodecFactory"))
+                .toList();
+
+        LOG.infof("Registered %d QuarkusJsonCodecFactory-related classes for native reflection",
+                codecFactoryClasses.size());
+
+        reflectiveClasses.produce(ReflectiveClassBuildItem.builder(
+                codecFactoryClasses.toArray(new String[0]))
+                .methods()
+                .fields()
+                .constructors()
+                .build());
+    }
+
+    @BuildStep
+    void excludeCamelAgentInterfacesFromImpliedRegistration(
+            CombinedIndexBuildItem combinedIndex,
+            BuildProducer<ExcludeFromImpliedAiServiceBuildItem> excludedFromImplied) {
+        if (combinedIndex.getIndex().getClassByName(AI_AGENT_WITHOUT_MEMORY_SERVICE) != null) {
+            excludedFromImplied.produce(new ExcludeFromImpliedAiServiceBuildItem(AI_AGENT_WITHOUT_MEMORY_SERVICE.toString()));
+        }
+    }
+
+    @BuildStep
+    @Record(ExecutionTime.STATIC_INIT)
+    void chatModelBeanQualifiers(
+            List<SelectedChatModelProviderBuildItem> chatModels,
+            BuildProducer<CamelBeanQualifierResolverBuildItem> beanQualifierResolver,
+            QuarkusLangchain4jRecorder recorder) {
+        chatModels.stream()
+                .map(SelectedChatModelProviderBuildItem::getConfigName)
+                .filter(configName -> !NamedConfigUtil.isDefault(configName))
+                .forEach(configName -> beanQualifierResolver.produce(
+                        new CamelBeanQualifierResolverBuildItem(ChatModel.class, configName,
+                                recorder.chatModelBeanQualifierResolver(configName))));
+    }
+
+    @BuildStep
+    void validateAndRegisterAiServices(
+            CombinedIndexBuildItem indexBuildItem,
+            BuildProducer<UnremovableBeanBuildItem> unremovableBeans) {
+
+        LOG.debug("Discovering classes annotated with @RegisterAiService to mark implementation beans as unremovable");
+
+        for (AnnotationInstance instance : indexBuildItem.getIndex().getAnnotations(REGISTER_AI_SERVICES_DOTNAME)) {
+            if (instance.target().kind() == AnnotationTarget.Kind.CLASS) {
+                String declarativeAiServiceClassName = instance.target().asClass().name().toString();
+                LOG.debugf("Marking Quarkus Ai service implementation class for %s as unremovable",
+                        declarativeAiServiceClassName);
+                unremovableBeans.produce(beanClassNames(declarativeAiServiceClassName + "$$QuarkusImpl"));
+            }
+        }
+    }
+
+}

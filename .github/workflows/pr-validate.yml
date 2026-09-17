@@ -32,6 +32,9 @@ on:
       - 'KEYS'
       - 'LICENSE.txt'
       - 'NOTICE.txt'
+      - 'camel-quarkus-sbom/**'
+      - '**/META-INF/quarkus-extension.yaml'
+      - '.asf.yaml'
       - '.github/*.sh'
       - '.github/*.yaml'
       - '.github/*.yml'
@@ -39,9 +42,12 @@ on:
       - '.github/workflows/assign-wontfix-issue-milestone.yaml'
       - '.github/workflows/camel-master-cron.yaml'
       - '.github/workflows/check-dependency-convergence.yml'
-      - '.github/workflows/ci-semeru-jdk.yaml'
+      - '.github/workflows/alternate-jdk-build.yaml'
       - '.github/workflows/generate-sbom-main.yml'
+      - '.github/workflows/jdk21-build.yaml'
       - '.github/workflows/jdk25-build.yaml'
+      - '.github/workflows/semeru17-build.yaml'
+      - '.github/workflows/semeru21-build.yaml'
       - '.github/workflows/label-issue.yaml'
       - '.github/workflows/pr-validate.yml'
       - '.github/workflows/quarkus-lts-ci-build.yaml'
@@ -65,7 +71,7 @@ permissions:  # added using https://github.com/step-security/secure-repo
 
 jobs:
   check-format:
-    if: github.repository == 'apache/camel-quarkus'
+    if: github.repository == 'apache/camel-quarkus' && github.event.pull_request.user.login != 'dependabot[bot]'
     runs-on: ubuntu-latest
     steps:
     - name: Setup apache-snapshots profile
@@ -76,16 +82,25 @@ jobs:
       if: github.base_ref == 'quarkus-main'
       run: |
         echo "BRANCH_OPTIONS=-Poss-snapshots" >> $GITHUB_ENV
-    - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
     - name: Set up JDK 17
-      uses: actions/setup-java@be666c2fcd27ec809703dec50e508c2fdc7f6654 # v5.2.0
+      uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6.0.1
       with:
         distribution: 'temurin'
         java-version: '17'
+    - name: Setup Maven Cache
+      id: maven-cache
+      uses: ./.github/actions/setup-maven-cache
     - name: mvn validate
       run: |
         ./mvnw ${CQ_MAVEN_ARGS} ${BRANCH_OPTIONS} -fae \
           -DskipTests \
           -Pcheck-format \
           clean validate
+    - name: Save Maven Cache
+      uses: ./.github/actions/setup-maven-cache
+      if: always()
+      with:
+        action: save
+        cache-key: ${{ steps.maven-cache.outputs.cache-key }}
 

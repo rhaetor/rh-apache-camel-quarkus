@@ -17,8 +17,10 @@
 package org.apache.camel.quarkus.component.azure.storage.datalake.it;
 
 import io.quarkus.test.junit.QuarkusIntegrationTest;
+import org.apache.camel.quarkus.test.EnabledIf;
 
 @QuarkusIntegrationTest
+@EnabledIf(DatalakeCredentialsAvailable.class)
 class AzureStorageDatalakeIT extends AzureStorageDatalakeTest {
 
 }

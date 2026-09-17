@@ -22,13 +22,13 @@
     <parent>
         <groupId>org.apache.camel.quarkus</groupId>
         <artifactId>camel-quarkus-arangodb-parent</artifactId>
-        <version>3.35.0-SNAPSHOT</version>
+        <version>3.40.0-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
     <artifactId>camel-quarkus-arangodb</artifactId>
     <name>Camel Quarkus :: ArangoDb :: Runtime</name>
-    <description>Perform operations on ArangoDb documents, collections and graphs.</description>
+    <description>Perform operations on ArangoDb when used as a Document Database, or as a Graph Database</description>
 
     <properties>
         <camel.quarkus.jvmSince>1.1.0</camel.quarkus.jvmSince>

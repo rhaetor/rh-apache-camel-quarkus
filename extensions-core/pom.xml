@@ -23,7 +23,7 @@
     <parent>
         <groupId>org.apache.camel.quarkus</groupId>
         <artifactId>camel-quarkus-build-parent</artifactId>
-        <version>3.35.0-SNAPSHOT</version>
+        <version>3.40.0-SNAPSHOT</version>
         <relativePath>../poms/build-parent/pom.xml</relativePath>
     </parent>
 
@@ -34,7 +34,6 @@
 
     <modules>
         <module>core</module>
-        <module>core-cloud</module>
         <module>http-common</module>
         <module>reactive-executor</module>
         <module>threadpoolfactory-vertx</module>

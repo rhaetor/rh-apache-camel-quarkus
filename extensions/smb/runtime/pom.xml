@@ -22,13 +22,13 @@
     <parent>
         <groupId>org.apache.camel.quarkus</groupId>
         <artifactId>camel-quarkus-smb-parent</artifactId>
-        <version>3.35.0-SNAPSHOT</version>
+        <version>3.40.0-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
     <artifactId>camel-quarkus-smb</artifactId>
     <name>Camel Quarkus :: SMB :: Runtime</name>
-    <description>SMB component which consumes natively from file shares using the Server Message Block (SMB, also known as Common Internet File System - CIFS) protocol</description>
+    <description>Read and write files to Server Message Block (SMB) file shares.</description>
 
     <properties>
         <camel.quarkus.jvmSince>3.7.0</camel.quarkus.jvmSince>

@@ -22,13 +22,19 @@
     <parent>
         <groupId>org.apache.camel.quarkus</groupId>
         <artifactId>camel-quarkus-build-parent-it</artifactId>
-        <version>3.35.0-SNAPSHOT</version>
+        <version>3.40.0-SNAPSHOT</version>
         <relativePath>../../poms/build-parent-it/pom.xml</relativePath>
     </parent>
 
     <artifactId>camel-quarkus-integration-test-cxf-soap-grouped</artifactId>
     <name>Camel Quarkus :: Integration Tests :: Cxf Soap Grouped</name>
     <description>Cxf Soap tests from ../integration-test-groups/cxf-soap merged together</description>
+
+    <properties>
+        <!-- Placeholder properties used and overriden by the native & disable-awt-tests profiles  -->
+        <cxf-soap-grouped.files.excludes />
+        <cxf-soap-grouped.files.excludes.if-native />
+    </properties>
 
     <!-- Regenerate the dependencies via `mvn process-resources -Pformat -N` from the source tree root directory -->
     <dependencies>
@@ -39,6 +45,16 @@
         <dependency>
             <groupId>io.quarkiverse.cxf</groupId>
             <artifactId>quarkus-cxf-rt-features-metrics</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.quarkiverse.cxf</groupId>
+            <artifactId>quarkus-cxf-rt-ws-security</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>com.google.code.findbugs</groupId>
+                    <artifactId>jsr305</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>io.quarkiverse.cxf</groupId>
@@ -151,6 +167,7 @@
                                 <group-tests.source.dir>${maven.multiModuleProjectDirectory}/integration-test-groups/cxf-soap</group-tests.source.dir>
                                 <group-tests.dest.module.dir>${project.basedir}</group-tests.dest.module.dir>
                                 <group-tests.concat.rel.paths>src/main/resources/application.properties</group-tests.concat.rel.paths>
+                                <group-tests.files.excludes>${cxf-soap-grouped.files.excludes}</group-tests.files.excludes>
                             </properties>
                         </configuration>
                     </execution>
@@ -184,6 +201,7 @@
             </activation>
             <properties>
                 <quarkus.native.enabled>true</quarkus.native.enabled>
+                <cxf-soap-grouped.files.excludes>${cxf-soap-grouped.files.excludes.if-native}</cxf-soap-grouped.files.excludes>
             </properties>
             <build>
                 <plugins>
@@ -616,6 +634,31 @@
             <properties>
                 <skipTests>true</skipTests>
             </properties>
+        </profile>
+        <!-- Opt-in profile to disable CXF AWT testing. Primarilly for macOS where AWT is not available in GraalVM -->
+        <profile>
+            <id>disable-awt-tests</id>
+            <activation>
+                <property>
+                    <name>disable-awt-tests</name>
+                </property>
+                <os>
+                    <family>mac</family>
+                </os>
+            </activation>
+            <properties>
+                <cxf-soap-grouped.files.excludes.if-native>cxf-soap-mtom-awt</cxf-soap-grouped.files.excludes.if-native>
+            </properties>
+            <dependencyManagement>
+                <dependencies>
+                    <dependency>
+                        <groupId>io.quarkus</groupId>
+                        <artifactId>quarkus-awt</artifactId>
+                        <version>${quarkus.version}</version>
+                        <scope>provided</scope>
+                    </dependency>
+                </dependencies>
+            </dependencyManagement>
         </profile>
     </profiles>
 

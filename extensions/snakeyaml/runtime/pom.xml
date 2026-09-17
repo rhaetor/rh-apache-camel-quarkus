@@ -22,12 +22,13 @@
     <parent>
         <groupId>org.apache.camel.quarkus</groupId>
         <artifactId>camel-quarkus-snakeyaml-parent</artifactId>
-        <version>3.35.0-SNAPSHOT</version>
+        <version>3.40.0-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
     <artifactId>camel-quarkus-snakeyaml</artifactId>
     <name>Camel Quarkus :: SnakeYAML :: Runtime</name>
+    <description>Marshal and unmarshal Java objects to and from YAML using SnakeYAML</description>
 
     <properties>
         <camel.quarkus.jvmSince>0.4.0</camel.quarkus.jvmSince>

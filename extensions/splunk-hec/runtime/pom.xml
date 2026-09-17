@@ -22,13 +22,13 @@
     <parent>
         <groupId>org.apache.camel.quarkus</groupId>
         <artifactId>camel-quarkus-splunk-hec-parent</artifactId>
-        <version>3.35.0-SNAPSHOT</version>
+        <version>3.40.0-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
     <artifactId>camel-quarkus-splunk-hec</artifactId>
     <name>Camel Quarkus :: Splunk HEC :: Runtime</name>
-    <description>The splunk component allows to publish events in Splunk using the HTTP Event Collector.</description>
+    <description>The splunk component allows publishing events in Splunk using the HTTP Event Collector.</description>
 
     <properties>
         <camel.quarkus.jvmSince>1.1.0</camel.quarkus.jvmSince>

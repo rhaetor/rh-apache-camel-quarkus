@@ -22,13 +22,13 @@
     <parent>
         <groupId>org.apache.camel.quarkus</groupId>
         <artifactId>camel-quarkus-langchain4j-embeddingstore-parent</artifactId>
-        <version>3.35.0-SNAPSHOT</version>
+        <version>3.40.0-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
     <artifactId>camel-quarkus-langchain4j-embeddingstore</artifactId>
     <name>Camel Quarkus :: LangChain4j Embedding Store :: Runtime</name>
-    <description>Perform operations on the Langchain4jEmbeddingStores.</description>
+    <description>Perform operations on the LangChain4jEmbeddingStores.</description>
 
     <properties>
         <camel.quarkus.jvmSince>3.29.0</camel.quarkus.jvmSince>
@@ -48,6 +48,19 @@
         <dependency>
             <groupId>org.apache.camel</groupId>
             <artifactId>camel-langchain4j-embeddingstore</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>dev.langchain4j</groupId>
+            <artifactId>langchain4j</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>dev.langchain4j</groupId>
+            <artifactId>langchain4j-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.quarkiverse.langchain4j</groupId>
+            <artifactId>quarkus-langchain4j-core</artifactId>
+            <optional>true</optional>
         </dependency>
     </dependencies>
 

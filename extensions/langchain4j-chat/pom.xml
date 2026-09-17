@@ -22,12 +22,12 @@
     <parent>
         <groupId>org.apache.camel.quarkus</groupId>
         <artifactId>camel-quarkus-extensions</artifactId>
-        <version>3.35.0-SNAPSHOT</version>
+        <version>3.40.0-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
     <artifactId>camel-quarkus-langchain4j-chat-parent</artifactId>
-    <name>Camel Quarkus :: langChain4j Chat</name>
+    <name>Camel Quarkus :: LangChain4j Chat</name>
     <packaging>pom</packaging>
 
     <modules>

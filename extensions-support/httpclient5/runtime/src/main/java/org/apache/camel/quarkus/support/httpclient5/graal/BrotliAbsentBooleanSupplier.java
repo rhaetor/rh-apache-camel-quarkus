@@ -22,7 +22,7 @@ public class BrotliAbsentBooleanSupplier implements BooleanSupplier {
     @Override
     public boolean getAsBoolean() {
         try {
-            Thread.currentThread().getContextClassLoader().loadClass("org.brotli.dec.Decoder");
+            Thread.currentThread().getContextClassLoader().loadClass("com.aayushatharva.brotli4j.Brotli4jLoader");
             return false;
         } catch (ClassNotFoundException e) {
             return true;

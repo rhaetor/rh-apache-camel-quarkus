@@ -21,13 +21,13 @@
     <parent>
         <groupId>org.apache.camel.quarkus</groupId>
         <artifactId>camel-quarkus-jackson-parent</artifactId>
-        <version>3.35.0-SNAPSHOT</version>
+        <version>3.40.0-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>camel-quarkus-jackson</artifactId>
     <name>Camel Quarkus :: Jackson :: Runtime</name>
-    <description>Marshal POJOs to JSON and back using Jackson</description>
+    <description>Marshal POJOs to JSON and back using Jackson.</description>
 
     <properties>
         <camel.quarkus.jvmSince>0.3.0</camel.quarkus.jvmSince>

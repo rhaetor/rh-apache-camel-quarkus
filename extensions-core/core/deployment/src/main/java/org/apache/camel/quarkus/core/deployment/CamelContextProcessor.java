@@ -115,12 +115,12 @@ public class CamelContextProcessor {
      * @param recorder the recorder
      * @param producer producer of context customizer build item
      */
-    @Record(ExecutionTime.STATIC_INIT)
+    @Record(ExecutionTime.RUNTIME_INIT)
     @BuildStep(onlyIf = SourceLocationEnabled.class)
     public void enableSourceLocation(
             CamelContextRecorder recorder,
-            BuildProducer<CamelContextCustomizerBuildItem> producer) {
-        producer.produce(new CamelContextCustomizerBuildItem(recorder.createSourceLocationEnabledCustomizer()));
+            BuildProducer<RuntimeCamelContextCustomizerBuildItem> runtimeProducer) {
+        runtimeProducer.produce(new RuntimeCamelContextCustomizerBuildItem(recorder.createSourceLocationEnabledCustomizer()));
     }
 
     /**
@@ -171,13 +171,13 @@ public class CamelContextProcessor {
      * @param recorder the recorder
      * @param producer producer of context customizer build item
      */
-    @Record(ExecutionTime.STATIC_INIT)
+    @Record(ExecutionTime.RUNTIME_INIT)
     @BuildStep(onlyIf = TraceEnabled.class)
     public void enableCamelTrace(
             CamelConfig config,
             CamelContextRecorder recorder,
-            BuildProducer<CamelContextCustomizerBuildItem> producer) {
-        producer.produce(new CamelContextCustomizerBuildItem(recorder.createBacklogTracerCustomizer(config)));
+            BuildProducer<RuntimeCamelContextCustomizerBuildItem> runtimeProducer) {
+        runtimeProducer.produce(new RuntimeCamelContextCustomizerBuildItem(recorder.createBacklogTracerCustomizer(config)));
     }
 
     @Record(ExecutionTime.STATIC_INIT)
@@ -190,12 +190,6 @@ public class CamelContextProcessor {
     @BuildStep(onlyIfNot = NativeOrNativeSourcesBuild.class)
     CamelBootClockBuildItem createCamelNativeModeBootClock(CamelContextRecorder recorder) {
         return new CamelBootClockBuildItem(recorder.createBootClock(false));
-    }
-
-    @Record(ExecutionTime.RUNTIME_INIT)
-    @BuildStep
-    RuntimeCamelContextCustomizerBuildItem registerDataFormatLifecycleStrategy(CamelContextRecorder recorder) {
-        return new RuntimeCamelContextCustomizerBuildItem(recorder.registerDataFormatLifecycleStrategy());
     }
 
     public static final class EventBridgeEnabled implements BooleanSupplier {

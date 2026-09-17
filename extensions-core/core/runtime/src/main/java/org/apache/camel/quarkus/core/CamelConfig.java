@@ -95,15 +95,22 @@ public interface CamelConfig {
     /**
      * Build time configuration options for the Camel tracing.
      *
+     * @deprecated  use the standard Apache Camel {@code camel.trace.*} configuration properties instead. Deprecated in
+     *              3.39.0,
+     *              will be removed in 4.0.0.
      * @asciidoclet
      */
+    @Deprecated(since = "3.39.0", forRemoval = true)
     TraceConfig trace();
 
     /**
      * Build time configuration options for Camel type converters.
      *
+     * @deprecated  use the standard Apache Camel {@code camel.main.typeConverterStatisticsEnabled} configuration property
+     *              instead. Deprecated in 3.39.0, will be removed in 4.0.0.
      * @asciidoclet
      */
+    @Deprecated(since = "3.39.0", forRemoval = true)
     TypeConverterConfig typeConverter();
 
     /**
@@ -281,16 +288,23 @@ public interface CamelConfig {
         public Optional<List<String>> includePatterns();
 
         /**
-         * If `true`, basic classes are registered for serialization; otherwise basic classes won't be registered automatically
-         * for serialization in native mode. The list of classes automatically registered for serialization can be found in
+         * Controls whether classes are registered for serialization in native mode. The base set of classes registered can be
+         * found in
          * link:https://github.com/apache/camel-quarkus/blob/main/extensions-core/core/deployment/src/main/java/org/apache/camel/quarkus/core/deployment/CamelSerializationProcessor.java[CamelSerializationProcessor.BASE_SERIALIZATION_CLASSES].
-         * Setting this to `false` helps to reduce the size of the native image. In JVM mode, there is no real benefit of
-         * setting this flag to `true` except for making the behavior consistent with native mode.
+         *
+         * When this option is not set, classes are registered for serialization only if an extension on the classpath requires
+         * it.
+         *
+         * Setting this option to `true` always registers the base set of classes for serialization. Setting it to `false`
+         * prevents any registration, even when extensions on the classpath require it. Note that this can cause components
+         * relying on Java serialization to fail at runtime.
+         *
+         * Disabling serialization helps to reduce the size of the native image. In JVM mode, this option has no effect other
+         * than making the behavior consistent with native mode.
          *
          * @asciidoclet
          */
-        @WithDefault("false")
-        boolean serializationEnabled();
+        Optional<Boolean> serializationEnabled();
     }
 
     interface RuntimeCatalogConfig {
@@ -423,6 +437,12 @@ public interface CamelConfig {
         boolean enabled();
     }
 
+    /**
+     * @deprecated use the standard Apache Camel {@code camel.trace.*} configuration properties instead. Deprecated in
+     *             3.39.0,
+     *             will be removed in 4.0.0.
+     */
+    @Deprecated(since = "3.39.0", forRemoval = true)
     interface TraceConfig {
         /**
          * Enables tracer in your Camel application.
@@ -537,8 +557,31 @@ public interface CamelConfig {
          * @asciidoclet
          */
         Optional<String> traceFilter();
+
+        /**
+         * Whether activity tracking is enabled. Activity tracking captures a rolling window of completed exchange
+         * summaries with enriched span decorator attributes (e.g. Kafka topic, HTTP method, SQL query).
+         *
+         * @asciidoclet
+         */
+        @WithDefault("false")
+        boolean activityEnabled();
+
+        /**
+         * The maximum number of completed exchange summaries to keep in the activity queue. The valid range is 1 to
+         * 1000.
+         *
+         * @asciidoclet
+         */
+        @WithDefault("100")
+        int activitySize();
     }
 
+    /**
+     * @deprecated use the standard Apache Camel {@code camel.main.typeConverterStatisticsEnabled} configuration property
+     *             instead. Deprecated in 3.39.0, will be removed in 4.0.0.
+     */
+    @Deprecated(since = "3.39.0", forRemoval = true)
     interface TypeConverterConfig {
         /**
          * Whether type converter statistics are enabled. By default, type converter utilization statistics are disabled. Note

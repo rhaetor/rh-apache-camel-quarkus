@@ -30,13 +30,13 @@ jobs:
     if: github.repository == 'apache/camel-quarkus' &&
         github.event_name == 'issues' &&
         github.event.issue.milestone.number != 4 && (contains(github.event.issue.labels.*.name, 'wontfix') || github.event.issue.state_reason == 'not_planned')
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-slim
     concurrency:
       group: assign-wont-fix-issue-milestone-${{ github.event.issue.number }}
       cancel-in-progress: true
     steps:
       - name: Assign Closed Issue To Wont Fix Milestone
-        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         with:
           script: |
             await github.rest.issues.update({

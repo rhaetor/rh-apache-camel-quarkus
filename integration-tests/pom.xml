@@ -23,7 +23,7 @@
     <parent>
         <groupId>org.apache.camel.quarkus</groupId>
         <artifactId>camel-quarkus</artifactId>
-        <version>3.35.0-SNAPSHOT</version>
+        <version>3.40.0-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -48,8 +48,11 @@
         <module>main-yaml</module>
 
         <!-- extensions a..z; do not remove this comment, it is important when sorting via  mvn process-resources -Pformat -->
+        <module>a2a</module>
         <module>activemq</module>
         <module>activemq6</module>
+        <module>ai-tool</module>
+        <module>ai-tool-langchain4j</module>
         <module>amqp</module>
         <module>arangodb</module>
         <module>as2</module>
@@ -85,6 +88,7 @@
         <module>disruptor</module>
         <module>docling</module>
         <module>dropbox</module>
+        <module>elasticsearch</module>
         <module>elasticsearch-rest-client</module>
         <module>exec</module>
         <module>fhir</module>
@@ -96,7 +100,7 @@
         <module>ftp</module>
         <module>geocoder</module>
         <module>git</module>
-        <module>github</module>
+        <module>github2</module>
         <module>google</module>
         <module>google-bigquery</module>
         <module>google-pubsub</module>
@@ -105,7 +109,6 @@
         <module>graphql</module>
         <module>grok</module>
         <module>groovy</module>
-        <module>groovy-xml</module>
         <module>grpc</module>
         <module>hashicorp-vault</module>
         <module>hazelcast</module>
@@ -113,6 +116,8 @@
         <module>hl7</module>
         <module>http-grouped</module>
         <module>ibm-cos</module>
+        <module>ibm-watson-discovery</module>
+        <module>ibm-watson-language</module>
         <module>infinispan</module>
         <module>infinispan-common</module>
         <module>infinispan-quarkus-client</module>
@@ -141,6 +146,7 @@
         <module>json-validator</module>
         <module>jsonata</module>
         <module>jsonpath</module>
+        <module>jsoup</module>
         <module>jt400</module>
         <module>jt400-mocked</module>
         <module>jta</module>
@@ -155,9 +161,16 @@
         <module>kubernetes</module>
         <module>kudu</module>
         <module>langchain4j-agent</module>
+        <module>langchain4j-agent-bean-binding-ql4j</module>
+        <module>langchain4j-agent-ql4j</module>
         <module>langchain4j-chat</module>
+        <module>langchain4j-chat-ql4j</module>
         <module>langchain4j-embeddings</module>
+        <module>langchain4j-embeddings-ql4j</module>
         <module>langchain4j-embeddingstore</module>
+        <module>langchain4j-embeddingstore-ql4j</module>
+        <module>langchain4j-ingest</module>
+        <module>langchain4j-rag-bridge-ql4j</module>
         <module>langchain4j-tokenizer</module>
         <module>langchain4j-tools</module>
         <module>langchain4j-web-search</module>
@@ -172,8 +185,10 @@
         <module>master-file</module>
         <module>master-infinispan</module>
         <module>master-openshift</module>
+        <module>mcp-server</module>
         <module>mdc</module>
         <module>micrometer</module>
+        <module>micrometer-observability</module>
         <module>microprofile-fault-tolerance</module>
         <module>microprofile-health</module>
         <module>milo</module>
@@ -186,15 +201,16 @@
         <module>mybatis</module>
         <module>nats</module>
         <module>netty</module>
-        <module>nitrite</module>
         <module>oaipmh</module>
         <module>oauth</module>
         <module>observability-services</module>
+        <module>ocsf</module>
         <module>ognl</module>
         <module>olingo4</module>
         <module>once</module>
         <module>openai</module>
         <module>openapi-java</module>
+        <module>openapi-validator</module>
         <module>openstack</module>
         <module>opentelemetry</module>
         <module>opentelemetry2</module>
@@ -208,6 +224,7 @@
         <module>platform-http</module>
         <module>platform-http-proxy</module>
         <module>platform-http-proxy-ssl</module>
+        <module>pqc</module>
         <module>protobuf</module>
         <module>pubnub</module>
         <module>qdrant</module>
@@ -217,6 +234,7 @@
         <module>reactive-streams</module>
         <module>rest</module>
         <module>rest-openapi</module>
+        <module>rocketmq</module>
         <module>saga</module>
         <module>salesforce</module>
         <module>sap-netweaver</module>
@@ -247,6 +265,7 @@
         <module>telegram</module>
         <module>telemetry-dev</module>
         <module>tika</module>
+        <module>tls-registry</module>
         <module>twilio</module>
         <module>twitter</module>
         <module>univocity-parsers</module>

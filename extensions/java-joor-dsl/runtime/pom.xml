@@ -22,13 +22,13 @@
     <parent>
         <groupId>org.apache.camel.quarkus</groupId>
         <artifactId>camel-quarkus-java-joor-dsl-parent</artifactId>
-        <version>3.35.0-SNAPSHOT</version>
+        <version>3.40.0-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
     <artifactId>camel-quarkus-java-joor-dsl</artifactId>
     <name>Camel Quarkus :: Java jOOR DSL :: Runtime</name>
-    <description>Support for parsing Java route definitions at runtime</description>
+    <description>Camel Java DSL with jOOR</description>
 
     <properties>
         <camel.quarkus.jvmSince>1.8.0</camel.quarkus.jvmSince>

@@ -27,7 +27,12 @@ on:
 
 jobs:
   update:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-slim
+    permissions:
+      # Read the changeset artifact produced by the unprivileged CI run
+      actions: read
+      # Push the regenerated files back to the dependabot branch
+      contents: write
     outputs:
       branch-ref: ${{ steps.setup-dependabot-patches.outputs.branch-ref }}
       pr-number: ${{ steps.setup-dependabot-patches.outputs.pr-number }}
@@ -36,7 +41,7 @@ jobs:
     steps:
       - name: Download dependabot pull request changes
         id: download-pr-changes
-        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         with:
           result-encoding: string
           script: |
@@ -59,7 +64,7 @@ jobs:
               });
 
               const fs = require('fs');
-              fs.writeFileSync('/home/runner/work/dependabot-pr.zip', Buffer.from(download.data));
+              fs.writeFileSync(`${process.env.RUNNER_TEMP}/dependabot-pr.zip`, Buffer.from(download.data));
               return true;
             }
 
@@ -67,27 +72,48 @@ jobs:
       - name: Set up dependabot patches
         id: setup-dependabot-patches
         if: steps.download-pr-changes.outputs.result == 'true'
+        env:
+          HEAD_BRANCH: ${{ github.event.workflow_run.head_branch }}
         run: |
-          if [[ -f /home/runner/work/dependabot-pr.zip ]]; then
-            mkdir -p /home/runner/work/dependabot-pr
-            unzip -o /home/runner/work/dependabot-pr.zip -d /home/runner/work/dependabot-pr
+          PR_ZIP="${RUNNER_TEMP:?}/dependabot-pr.zip"
+          PR_DIR="${RUNNER_TEMP:?}/dependabot-pr"
+          if [[ -f "${PR_ZIP}" ]]; then
+            mkdir -p "${PR_DIR}"
+            unzip -o "${PR_ZIP}" -d "${PR_DIR}"
 
-            PR_HEAD_SHA=$(cat /home/runner/work/dependabot-pr/PR_HEAD_SHA)
+            PR_HEAD_SHA=$(cat "${PR_DIR}/PR_HEAD_SHA")
             if [[ ! "${PR_HEAD_SHA}" =~ ^[0-9a-f]{40}$ ]]; then
               exit 1
             fi
 
-            PR_NUMBER=$(cat /home/runner/work/dependabot-pr/PR_NUMBER)
+            PR_NUMBER=$(cat "${PR_DIR}/PR_NUMBER")
             if [[ ! "${PR_NUMBER}" =~ ^[0-9]+$ ]]; then
               exit 1
             fi
 
-            echo "branch-ref=$(cat /home/runner/work/dependabot-pr/BRANCH_REF)" >> $GITHUB_OUTPUT
+            PR_AUTHOR=$(cat "${PR_DIR}/PR_AUTHOR")
+            if [[ "${PR_AUTHOR}" != "dependabot[bot]" ]]; then
+              exit 1
+            fi
+
+            BRANCH_REF=$(cat "${PR_DIR}/BRANCH_REF")
+            if [[ ! "${BRANCH_REF}" =~ ^dependabot/[A-Za-z0-9._/-]+$ ]]; then
+              exit 1
+            fi
+
+            # The push target comes from the workflow_run event rather than
+            # from the artifact. The two must agree.
+            if [[ "${BRANCH_REF}" != "${HEAD_BRANCH}" ]]; then
+              echo "::error::BRANCH_REF '${BRANCH_REF}' does not match workflow_run head_branch '${HEAD_BRANCH}'"
+              exit 1
+            fi
+
+            echo "branch-ref=${HEAD_BRANCH}" >> $GITHUB_OUTPUT
             echo "pr-head-sha=${PR_HEAD_SHA}" >> $GITHUB_OUTPUT
             echo "pr-number=${PR_NUMBER}" >> $GITHUB_OUTPUT
           fi
       - name: Checkout dependabot branch
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         if: steps.setup-dependabot-patches.outputs.pr-head-sha != ''
         with:
           ref: ${{ steps.setup-dependabot-patches.outputs.pr-head-sha }}
@@ -95,17 +121,46 @@ jobs:
       - name: Push changes to dependabot/maven branch
         id: push-changes
         if: steps.setup-dependabot-patches.outputs.branch-ref != ''
+        env:
+          HEAD_BRANCH: ${{ github.event.workflow_run.head_branch }}
         run: |
           git config --local user.email "49699333+dependabot[bot]@users.noreply.github.com"
           git config --local user.name "dependabot[bot]"
 
-          CHANGES_PATH=/home/runner/work/dependabot-pr/changes.patch
+          CHANGES_PATH="${RUNNER_TEMP:?}/dependabot-pr/changes.patch"
           if [[ -f "${CHANGES_PATH}" ]]; then
             COMMIT_MESSAGE="Auto generated changes for dependabot commit $(git log -1 --pretty=%H)"
 
-            git apply ${CHANGES_PATH}
+            # pre-build-checks only regenerates version properties (root
+            # pom.xml), the flattened BOM (poms/) and the Antora config
+            # (docs/), and never renames or copies, so check the patch matches
+            # that shape before applying it.
+            #
+            # Renames are excluded because git reports only a rename's
+            # destination path, which would not reflect the source.
+            if grep -qE '^(rename|copy) (from|to) ' "${CHANGES_PATH}"; then
+              echo "::error::Unexpected rename or copy in dependabot patch"
+              exit 1
+            fi
+
+            while IFS= read -r CHANGED_PATH; do
+              case "${CHANGED_PATH}" in
+                *..*)
+                  echo "::error::Unexpected path in dependabot patch: ${CHANGED_PATH}"
+                  exit 1
+                  ;;
+                pom.xml|poms/*|docs/*)
+                  ;;
+                *)
+                  echo "::error::Unexpected path in dependabot patch: ${CHANGED_PATH}"
+                  exit 1
+                  ;;
+              esac
+            done < <(git apply --numstat "${CHANGES_PATH}" | cut -f3)
+
+            git apply "${CHANGES_PATH}"
             git commit -am"${COMMIT_MESSAGE}"
-            git push origin HEAD:${{ steps.setup-dependabot-patches.outputs.branch-ref }}
+            git push origin "HEAD:${HEAD_BRANCH}"
 
             echo "updated=true" >> $GITHUB_OUTPUT
           else
@@ -114,14 +169,14 @@ jobs:
 
   rerun-pr-workflow:
     needs: update
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-slim
     if: needs.update.outputs.pr-updated == 'true'
     permissions:
       actions: write
       pull-requests: write
     steps:
       - name: Trigger dependabot pull request workflow
-        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         with:
           script: |
             await github.rest.actions.reRunWorkflow({

@@ -78,7 +78,7 @@ class QuartzClusteredTest {
                     .statusCode(204);
 
             // Verify that the NodeB scheduler is running
-            Awaitility.await().atMost(10, TimeUnit.SECONDS).with().until(() -> {
+            Awaitility.await().atMost(60, TimeUnit.SECONDS).with().until(() -> {
                 return Files.readAllLines(quarkusLog).stream().anyMatch(line -> line.contains("Hello from NodeB"));
             });
 
@@ -101,7 +101,10 @@ class QuartzClusteredTest {
     }
 
     private void awaitStartup(QuarkusProcessExecutor quarkusProcessExecutor) {
-        Awaitility.await().atMost(30, TimeUnit.SECONDS).pollDelay(1, TimeUnit.SECONDS).until(() -> {
+        long timeout = ConfigProvider.getConfig()
+                .getValue("quartz.clustered.test.startup.timeout.seconds", Long.class);
+
+        Awaitility.await().atMost(timeout, TimeUnit.SECONDS).pollDelay(1, TimeUnit.SECONDS).until(() -> {
             return isApplicationHealthy(quarkusProcessExecutor.getHttpPort());
         });
     }

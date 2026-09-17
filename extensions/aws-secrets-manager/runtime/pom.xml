@@ -22,13 +22,13 @@
     <parent>
         <groupId>org.apache.camel.quarkus</groupId>
         <artifactId>camel-quarkus-aws-secrets-manager-parent</artifactId>
-        <version>3.35.0-SNAPSHOT</version>
+        <version>3.40.0-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
     <artifactId>camel-quarkus-aws-secrets-manager</artifactId>
     <name>Camel Quarkus :: AWS Secrets Manager :: Runtime</name>
-    <description>Manage AWS Secrets Manager services using AWS SDK version 2.x.</description>
+    <description>Manage secrets using AWS Secrets Manager.</description>
 
     <properties>
         <camel.quarkus.jvmSince>2.0.0</camel.quarkus.jvmSince>

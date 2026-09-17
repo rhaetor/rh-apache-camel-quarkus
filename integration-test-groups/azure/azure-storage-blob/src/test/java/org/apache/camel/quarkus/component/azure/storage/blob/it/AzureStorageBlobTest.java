@@ -23,7 +23,10 @@ import java.nio.file.Paths;
 import java.time.OffsetDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
+import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
@@ -31,8 +34,10 @@ import com.azure.storage.blob.models.BlockListType;
 import io.quarkus.test.common.QuarkusTestResource;
 import io.quarkus.test.junit.QuarkusTest;
 import io.restassured.RestAssured;
+import io.restassured.common.mapper.TypeRef;
 import io.restassured.http.ContentType;
 import io.restassured.path.json.JsonPath;
+import org.apache.camel.quarkus.component.azure.storage.blob.it.AzureStorageHelper.BlobVersioningEnabled;
 import org.apache.camel.quarkus.component.azure.storage.blob.it.AzureStorageHelper.ClientCertificateAuthEnabled;
 import org.apache.camel.quarkus.component.azure.storage.blob.it.AzureStorageHelper.ClientSecretAuthEnabled;
 import org.apache.camel.quarkus.test.EnabledIf;
@@ -61,11 +66,9 @@ class AzureStorageBlobTest {
     private static final String BLOB_CONTENT = "Hello Camel Quarkus Azure Blob";
 
     @BeforeAll
-    static void beforeAll() {
-        final Config config = ConfigProvider.getConfig();
+    static void beforeAll(Config config) {
         String containerName = config.getValue("azure.blob.container.name", String.class);
-        int port = config.getValue("quarkus.http.test-port", int.class);
-        RestAssured.port = port;
+        RestAssured.port = config.getValue("quarkus.http.test-port", int.class);
         RestAssured.given()
                 .queryParam("containerName", containerName)
                 .post("/azure-storage-blob/blob/container")
@@ -74,8 +77,7 @@ class AzureStorageBlobTest {
     }
 
     @AfterAll
-    static void afterAll() {
-        final Config config = ConfigProvider.getConfig();
+    static void afterAll(Config config) {
         String containerName = config.getValue("azure.blob.container.name", String.class);
         RestAssured.given()
                 .queryParam("containerName", containerName)
@@ -253,13 +255,17 @@ class AzureStorageBlobTest {
                     .body(is("true"));
 
             // Read
-            RestAssured.get("/azure-storage-blob/blob/read")
+            RestAssured.given()
+                    .queryParam("blobName", AzureStorageBlobRoutes.APPEND_BLOB_NAME)
+                    .get("/azure-storage-blob/blob/read")
                     .then()
                     .statusCode(200)
                     .body(is(appendedContent));
         } finally {
             // Delete
-            RestAssured.delete("/azure-storage-blob/blob/delete")
+            RestAssured.given()
+                    .queryParam("blobName", AzureStorageBlobRoutes.APPEND_BLOB_NAME)
+                    .delete("/azure-storage-blob/blob/delete")
                     .then()
                     .statusCode(anyOf(is(204), is(404)));
         }
@@ -283,7 +289,9 @@ class AzureStorageBlobTest {
                     .statusCode(200)
                     .body(is("true"));
 
-            byte[] pageData = RestAssured.get("/azure-storage-blob/blob/read/bytes")
+            byte[] pageData = RestAssured.given()
+                    .queryParam("blobName", AzureStorageBlobRoutes.PAGE_BLOB_NAME)
+                    .get("/azure-storage-blob/blob/read/bytes")
                     .then()
                     .statusCode(200)
                     .extract()
@@ -312,7 +320,9 @@ class AzureStorageBlobTest {
                     .body(is("true"));
 
             // Read after resize
-            pageData = RestAssured.get("/azure-storage-blob/blob/read/bytes")
+            pageData = RestAssured.given()
+                    .queryParam("blobName", AzureStorageBlobRoutes.PAGE_BLOB_NAME)
+                    .get("/azure-storage-blob/blob/read/bytes")
                     .then()
                     .statusCode(200)
                     .extract()
@@ -338,7 +348,9 @@ class AzureStorageBlobTest {
                     .body(is("true"));
 
             // Read after clear
-            pageData = RestAssured.get("/azure-storage-blob/blob/read/bytes")
+            pageData = RestAssured.given()
+                    .queryParam("blobName", AzureStorageBlobRoutes.PAGE_BLOB_NAME)
+                    .get("/azure-storage-blob/blob/read/bytes")
                     .then()
                     .statusCode(200)
                     .extract()
@@ -353,7 +365,9 @@ class AzureStorageBlobTest {
             }
         } finally {
             // Delete
-            RestAssured.delete("/azure-storage-blob/blob/delete")
+            RestAssured.given()
+                    .queryParam("blobName", AzureStorageBlobRoutes.PAGE_BLOB_NAME)
+                    .delete("/azure-storage-blob/blob/delete")
                     .then()
                     .statusCode(anyOf(is(204), is(404)));
         }
@@ -609,5 +623,230 @@ class AzureStorageBlobTest {
                 .then()
                 .statusCode(200)
                 .body(is("true"));
+    }
+
+    @Test
+    public void blobSnapshot() {
+        try {
+            String originalContent = "Original Content";
+            String updatedContent = "Updated Content";
+
+            // Create blob
+            RestAssured.given()
+                    .contentType(ContentType.TEXT)
+                    .body(originalContent)
+                    .post("/azure-storage-blob/blob/create")
+                    .then()
+                    .statusCode(201);
+
+            // Create snapshot
+            String snapshotId = RestAssured.post("/azure-storage-blob/blob/snapshot/create")
+                    .then()
+                    .statusCode(201)
+                    .extract()
+                    .body()
+                    .asString();
+
+            assertNotNull(snapshotId);
+
+            // Update blob content
+            RestAssured.given()
+                    .contentType(ContentType.TEXT)
+                    .body(updatedContent)
+                    .patch("/azure-storage-blob/blob/update")
+                    .then()
+                    .statusCode(200);
+
+            // Read current blob (should return updated content)
+            RestAssured.get("/azure-storage-blob/blob/read")
+                    .then()
+                    .statusCode(200)
+                    .body(is(updatedContent));
+
+            // Read snapshot (should return original content)
+            RestAssured.given()
+                    .queryParam("snapshotId", snapshotId)
+                    .get("/azure-storage-blob/blob/snapshot/read")
+                    .then()
+                    .statusCode(200)
+                    .body(is(originalContent));
+        } finally {
+            // Delete blob and all snapshots
+            RestAssured.given()
+                    .queryParam("deleteSnapshots", "include")
+                    .delete("/azure-storage-blob/blob/delete")
+                    .then()
+                    .statusCode(anyOf(is(204), is(404)));
+        }
+    }
+
+    @Test
+    public void blobTags() {
+        try {
+            // Create blob
+            RestAssured.given()
+                    .contentType(ContentType.TEXT)
+                    .body("Test content for tags")
+                    .post("/azure-storage-blob/blob/create")
+                    .then()
+                    .statusCode(201);
+
+            // Set blob tags
+            Map<String, String> tags = new HashMap<>();
+            tags.put("environment", "test");
+            tags.put("project", "camel-quarkus");
+            tags.put("version", "1.0");
+
+            RestAssured.given()
+                    .contentType(ContentType.JSON)
+                    .body(tags)
+                    .post("/azure-storage-blob/blob/tags/set")
+                    .then()
+                    .statusCode(200);
+
+            // Get blob tags
+            Map<String, String> retrievedTags = RestAssured.get("/azure-storage-blob/blob/tags/get")
+                    .then()
+                    .statusCode(200)
+                    .extract()
+                    .as(new TypeRef<Map<String, String>>() {
+                    });
+
+            // Verify tags
+            assertEquals("test", retrievedTags.get("environment"));
+            assertEquals("camel-quarkus", retrievedTags.get("project"));
+            assertEquals("1.0", retrievedTags.get("version"));
+        } finally {
+            // Delete blob
+            RestAssured.delete("/azure-storage-blob/blob/delete")
+                    .then()
+                    .statusCode(anyOf(is(204), is(404)));
+        }
+    }
+
+    @Test
+    public void findBlobsByTags() {
+        String blobName1 = AzureStorageBlobRoutes.BLOB_NAME;
+
+        try {
+            // Create first blob with tags
+            RestAssured.given()
+                    .contentType(ContentType.TEXT)
+                    .body("Content for blob 1")
+                    .post("/azure-storage-blob/blob/create")
+                    .then()
+                    .statusCode(201);
+
+            Map<String, String> tags1 = new HashMap<>();
+            tags1.put("environment", "production");
+            tags1.put("team", "backend");
+
+            RestAssured.given()
+                    .contentType(ContentType.JSON)
+                    .body(tags1)
+                    .post("/azure-storage-blob/blob/tags/set")
+                    .then()
+                    .statusCode(200);
+
+            // On the real Azure service, blob index tag search is eventually consistent;
+            // poll until the result is available. Azurite returns results immediately.
+            String filter = "\"environment\" = 'production' AND \"team\" = 'backend'";
+            Awaitility.await().pollInterval(5, TimeUnit.SECONDS).timeout(2, TimeUnit.MINUTES).until(() -> {
+                List<Map<String, String>> blobs = RestAssured.given()
+                        .queryParam("filter", filter)
+                        .get("/azure-storage-blob/blob/tags/find")
+                        .then()
+                        .statusCode(200)
+                        .extract()
+                        .jsonPath()
+                        .getList("blobs");
+                return blobs != null && blobs.size() == 1 && blobName1.equals(blobs.get(0).get("name"));
+            });
+        } finally {
+            // Delete blob
+            RestAssured.delete("/azure-storage-blob/blob/delete")
+                    .then()
+                    .statusCode(anyOf(is(204), is(404)));
+        }
+    }
+
+    // Blob versioning requires the Azure Storage account to have versioning enabled
+    @EnabledIf({ BlobVersioningEnabled.class })
+    @Test
+    public void blobVersions() {
+        try {
+            String originalContent = "Version 1 Content";
+            String updatedContent = "Version 2 Content";
+
+            // Create blob (version 1)
+            RestAssured.given()
+                    .contentType(ContentType.TEXT)
+                    .body(originalContent)
+                    .post("/azure-storage-blob/blob/create")
+                    .then()
+                    .statusCode(201);
+
+            // Update blob (version 2)
+            RestAssured.given()
+                    .contentType(ContentType.TEXT)
+                    .body(updatedContent)
+                    .patch("/azure-storage-blob/blob/update")
+                    .then()
+                    .statusCode(200);
+
+            // List blob versions
+            List<Map<String, Object>> versions = RestAssured.get("/azure-storage-blob/blob/versions/list")
+                    .then()
+                    .statusCode(200)
+                    .extract()
+                    .jsonPath()
+                    .getList("versions");
+
+            // Find the current version and an older version, scoped to the blob under test
+            String blobName = AzureStorageBlobRoutes.BLOB_NAME;
+            Map<String, Object> currentVersion = versions.stream()
+                    .filter(v -> blobName.equals(v.get("name")))
+                    .filter(v -> (Boolean) v.get("isCurrentVersion"))
+                    .findFirst()
+                    .orElse(null);
+
+            Map<String, Object> oldVersion = versions.stream()
+                    .filter(v -> blobName.equals(v.get("name")))
+                    .filter(v -> !(Boolean) v.get("isCurrentVersion"))
+                    .filter(v -> v.get("versionId") != null)
+                    .sorted(Comparator.comparing((Map<String, Object> v) -> (String) v.get("versionId")).reversed())
+                    .findFirst()
+                    .orElse(null);
+
+            assertNotNull(currentVersion, "Should have a current version");
+            assertNotNull(oldVersion, "Should have an old version");
+
+            // Read current version (should return updated content)
+            String current = RestAssured.get("/azure-storage-blob/blob/read")
+                    .then()
+                    .statusCode(200)
+                    .extract()
+                    .body()
+                    .asString();
+            assertEquals(updatedContent, current);
+
+            // Read old version (should return original content)
+            String oldVersionId = (String) oldVersion.get("versionId");
+            assertNotNull(oldVersionId, "Old version should have a versionId");
+            String old = RestAssured.given()
+                    .queryParam("versionId", oldVersionId)
+                    .get("/azure-storage-blob/blob/version/read")
+                    .then()
+                    .statusCode(200)
+                    .extract()
+                    .body()
+                    .asString();
+            assertEquals(originalContent, old);
+        } finally {
+            // Delete blob
+            RestAssured.delete("/azure-storage-blob/blob/delete")
+                    .then()
+                    .statusCode(anyOf(is(204), is(404)));
+        }
     }
 }

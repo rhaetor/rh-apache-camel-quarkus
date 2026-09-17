@@ -22,13 +22,13 @@
     <parent>
         <groupId>org.apache.camel.quarkus</groupId>
         <artifactId>camel-quarkus-asn1-parent</artifactId>
-        <version>3.35.0-SNAPSHOT</version>
+        <version>3.40.0-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
     <artifactId>camel-quarkus-asn1</artifactId>
     <name>Camel Quarkus :: ASN.1 File :: Runtime</name>
-    <description>Encode and decode data structures using Abstract Syntax Notation One (ASN.1).</description>
+    <description>Encode and decode data structures using Abstract Syntax Notation One (ASN.1)</description>
 
     <properties>
         <camel.quarkus.jvmSince>1.1.0</camel.quarkus.jvmSince>

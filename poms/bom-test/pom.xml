@@ -23,7 +23,7 @@
     <parent>
         <groupId>org.apache.camel.quarkus</groupId>
         <artifactId>camel-quarkus-poms</artifactId>
-        <version>3.35.0-SNAPSHOT</version>
+        <version>3.40.0-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -36,7 +36,7 @@
         <!-- This property is kept in sync with project.version by the release plugin -->
         <!-- Do not change to project.version because otherwise the end user apps having our BOM as
         parent (rather than importing it) will stop working -->
-        <camel-quarkus.version>3.35.0-SNAPSHOT</camel-quarkus.version>
+        <camel-quarkus.version>3.40.0-SNAPSHOT</camel-quarkus.version>
     </properties>
 
     <dependencyManagement>
@@ -118,7 +118,7 @@
                         <groupId>org.apache.camel.quarkus</groupId>
                     </exclusion>
                     <exclusion>
-                        <artifactId>localstack</artifactId>
+                        <artifactId>testcontainers</artifactId>
                         <groupId>org.testcontainers</groupId>
                     </exclusion>
                     <exclusion>
@@ -461,6 +461,12 @@
                 <groupId>com.microsoft.graph</groupId>
                 <artifactId>microsoft-graph-auth</artifactId>
                 <version>${microsoft.graph.auth.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>io.quarkiverse.mcp</groupId>
+                <artifactId>quarkus-mcp-server-test</artifactId>
+                <version>${quarkiverse-mcp-server.version}</version>
                 <scope>test</scope>
             </dependency>
         </dependencies>

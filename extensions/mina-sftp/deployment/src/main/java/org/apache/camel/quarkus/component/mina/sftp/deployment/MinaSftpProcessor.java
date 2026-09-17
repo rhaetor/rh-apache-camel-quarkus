@@ -16,12 +16,14 @@
  */
 package org.apache.camel.quarkus.component.mina.sftp.deployment;
 
+import java.util.Set;
+
 import io.quarkus.deployment.annotations.BuildProducer;
 import io.quarkus.deployment.annotations.BuildStep;
 import io.quarkus.deployment.builditem.FeatureBuildItem;
+import io.quarkus.deployment.builditem.RemovedResourceBuildItem;
 import io.quarkus.deployment.builditem.nativeimage.RuntimeInitializedClassBuildItem;
-import org.apache.camel.quarkus.core.deployment.spi.CamelServiceFilter;
-import org.apache.camel.quarkus.core.deployment.spi.CamelServiceFilterBuildItem;
+import io.quarkus.maven.dependency.ArtifactKey;
 
 class MinaSftpProcessor {
 
@@ -33,23 +35,17 @@ class MinaSftpProcessor {
     }
 
     @BuildStep
-    void filterFtpComponents(BuildProducer<CamelServiceFilterBuildItem> serviceFilter) {
-        // camel-mina-sftp depends on camel-ftp only for shared base classes (RemoteFileEndpoint, etc.)
-        serviceFilter.produce(new CamelServiceFilterBuildItem(CamelServiceFilter.forComponent("ftp")));
-        serviceFilter.produce(new CamelServiceFilterBuildItem(CamelServiceFilter.forComponent("ftps")));
-        serviceFilter.produce(new CamelServiceFilterBuildItem(CamelServiceFilter.forComponent("sftp")));
+    RemovedResourceBuildItem removeFileSystemProviderService() {
+        // Remove the FileSystemProvider service file from sshd-sftp to prevent ServiceLoader
+        // from finding SftpFileSystemProvider which is marked with @Delete
+        return new RemovedResourceBuildItem(
+                ArtifactKey.fromString("org.apache.sshd:sshd-sftp"),
+                Set.of("META-INF/services/java.nio.file.spi.FileSystemProvider"));
     }
 
     @BuildStep
     void runtimeInitializedClasses(BuildProducer<RuntimeInitializedClassBuildItem> runtimeInitializedClass) {
-        // FTP/FTPS/SFTP endpoint classes are still on the classpath (from camel-ftp)
-        runtimeInitializedClass
-                .produce(new RuntimeInitializedClassBuildItem("org.apache.camel.component.file.remote.FtpEndpoint"));
-        runtimeInitializedClass
-                .produce(new RuntimeInitializedClassBuildItem("org.apache.camel.component.file.remote.FtpsEndpoint"));
-        runtimeInitializedClass
-                .produce(new RuntimeInitializedClassBuildItem("org.apache.camel.component.file.remote.SftpEndpoint"));
-
+        // MinaSftpOperations has Pattern static fields that should be initialized at runtime
         runtimeInitializedClass
                 .produce(
                         new RuntimeInitializedClassBuildItem("org.apache.camel.component.file.remote.mina.MinaSftpOperations"));

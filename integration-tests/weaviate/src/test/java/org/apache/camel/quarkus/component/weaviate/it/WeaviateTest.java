@@ -78,12 +78,8 @@ class WeaviateTest {
             if (collectionCreated) {
                 deleteCollection(collectionName);
 
-                //verify that collection is removed
                 query(collectionName, Arrays.asList(0.15f, 0.25f, 0.35f), Map.of("title", "", "content", ""), true)
-                        .body("error.statusCode", Matchers.equalTo(422))
-                        .body("error.messages.message",
-                                Matchers.hasItem(
-                                        "no graphql provider present, this is most likely because no schema is present. Import a schema first!"));
+                        .body("error", Matchers.not(IsEmptyString.emptyOrNullString()));
             }
         }
     }
@@ -106,25 +102,23 @@ class WeaviateTest {
                     Map.of("title", "Third Article", "content", "The content of the third article."));
 
             query(collectionName, Arrays.asList(0.15f, 0.25f, 0.35f), Map.of("title", "", "content", ""))
-                    .body("result.data.Get." + collectionName, Matchers.hasSize(2))
-                    .body("result.data.Get." + collectionName + "[0]", Matchers.aMapWithSize(2))
-                    .body("result.data.Get." + collectionName + "[0].title", Matchers.equalTo("Second Article"))
-                    .body("result.data.Get." + collectionName + "[1].title", Matchers.equalTo("First Article"));
+                    .body("result", Matchers.hasSize(2))
+                    .body("result[0]", Matchers.aMapWithSize(2))
+                    .body("result[0].title", Matchers.equalTo("Second Article"))
+                    .body("result[1].title", Matchers.equalTo("First Article"));
 
             query(collectionName, Arrays.asList(0.3f, 0.4f, 0.5f), Map.of("title", "", "content", ""))
-                    .body("result.data.Get." + collectionName, Matchers.hasSize(2))
-                    .body("result.data.Get." + collectionName + "[0]", Matchers.aMapWithSize(2))
-                    .body("result.data.Get." + collectionName + "[0].title", Matchers.equalTo("Third Article"))
-                    .body("result.data.Get." + collectionName + "[1].title", Matchers.equalTo("Second Article"));
+                    .body("result", Matchers.hasSize(2))
+                    .body("result[0]", Matchers.aMapWithSize(2))
+                    .body("result[0].title", Matchers.equalTo("Third Article"))
+                    .body("result[1].title", Matchers.equalTo("Second Article"));
 
         } finally {
             if (collectionCreated) {
                 deleteCollection(collectionName);
 
-                //verify that collection is removed
                 query(collectionName, Arrays.asList(0.15f, 0.25f, 0.35f), Map.of("title", "", "content", ""), true)
-                        .body("error.statusCode", Matchers.equalTo(422));
-                //message is already covered by operation test
+                        .body("error", Matchers.not(IsEmptyString.emptyOrNullString()));
             }
         }
     }
@@ -137,7 +131,6 @@ class WeaviateTest {
                 .post("/weaviate/request")
                 .then()
                 .statusCode(200)
-                .body("error", IsEmptyString.emptyOrNullString())
                 .body("result", Matchers.is(true));
     }
 
@@ -149,7 +142,6 @@ class WeaviateTest {
                 .post("/weaviate/request")
                 .then()
                 .statusCode(200)
-                .body("error", IsEmptyString.emptyOrNullString())
                 .body("result", Matchers.is(true));
     }
 
@@ -167,7 +159,6 @@ class WeaviateTest {
                 .post("/weaviate/request")
                 .then()
                 .statusCode(200)
-                .body("error", IsEmptyString.emptyOrNullString())
                 .extract().path("result");
 
         Assertions.assertNotNull(createdId);
@@ -186,8 +177,7 @@ class WeaviateTest {
                 .body(payload)
                 .post("/weaviate/request")
                 .then()
-                .statusCode(200)
-                .body("error", IsEmptyString.emptyOrNullString());
+                .statusCode(200);
     }
 
     private void updateById(String collectionName, String id, List<Float> values,
@@ -206,7 +196,7 @@ class WeaviateTest {
                 .post("/weaviate/request")
                 .then()
                 .statusCode(200)
-                .body("error", IsEmptyString.emptyOrNullString());
+                .body("result", Matchers.is(true));
     }
 
     public void deleteById(String collectionName, String id) {
@@ -221,8 +211,129 @@ class WeaviateTest {
                 .body(payload)
                 .post("/weaviate/request")
                 .then().statusCode(200)
-                .body("error", IsEmptyString.emptyOrNullString())
                 .body("result", Matchers.is(true));
+    }
+
+    @Test
+    public void newOperations() {
+        String collectionName = "WeaviateCQNewOps" + System.currentTimeMillis();
+
+        boolean collectionCreated = false;
+        try {
+            createCollection(collectionName);
+            LOG.infof("Collection created: %s", collectionName);
+            collectionCreated = true;
+
+            batchCreate(collectionName);
+
+            aggregate(collectionName);
+
+            // BM25 for "10" finds green and yellow (both have age=10) — pure text, no ranking preference
+            bm25Query(collectionName);
+
+            // Hybrid for "10" with vector [7.5, 8.5, 9.5] and alpha=0.75 also matches both,
+            // but ranks yellow first because its vector is closest to the query vector
+            // and the vector-heavy alpha makes that dominate
+            hybridQuery(collectionName);
+
+        } finally {
+            if (collectionCreated) {
+                deleteCollection(collectionName);
+            }
+        }
+    }
+
+    private void batchCreate(String collectionName) {
+        List<Map<String, Object>> objects = List.of(
+                Map.of("properties", Map.of("sky", "green", "age", "10"),
+                        "vector", Arrays.asList(4.0, 5.0, 6.0)),
+                Map.of("properties", Map.of("sky", "red", "age", "20"),
+                        "vector", Arrays.asList(7.0, 8.0, 9.0)),
+                Map.of("properties", Map.of("sky", "yellow", "age", "10"),
+                        "vector", Arrays.asList(7.5, 8.5, 9.5)));
+
+        Map<String, Object> payload = Map.of(
+                "body", objects,
+                WeaviateVectorDbHeaders.ACTION, WeaviateVectorDbAction.BATCH_CREATE,
+                WeaviateVectorDbHeaders.COLLECTION_NAME, collectionName);
+
+        List<String> uuids = RestAssured.given()
+                .contentType(ContentType.JSON)
+                .body(payload)
+                .post("/weaviate/request")
+                .then()
+                .statusCode(200)
+                .body("uuids", Matchers.hasSize(3))
+                .body("errors", Matchers.empty())
+                .extract().path("uuids");
+
+        queryById(collectionName, uuids.get(0))
+                .body("result", Matchers.aMapWithSize(1))
+                .body("result." + uuids.get(0), Matchers.is(Map.of("sky", "green", "age", "10")));
+
+        queryById(collectionName, uuids.get(1))
+                .body("result", Matchers.aMapWithSize(1))
+                .body("result." + uuids.get(1), Matchers.is(Map.of("sky", "red", "age", "20")));
+
+        queryById(collectionName, uuids.get(2))
+                .body("result", Matchers.aMapWithSize(1))
+                .body("result." + uuids.get(2), Matchers.is(Map.of("sky", "yellow", "age", "10")));
+    }
+
+    private void aggregate(String collectionName) {
+        Map<String, Object> payload = Map.of(
+                WeaviateVectorDbHeaders.ACTION, WeaviateVectorDbAction.AGGREGATE,
+                WeaviateVectorDbHeaders.COLLECTION_NAME, collectionName);
+
+        RestAssured.given()
+                .contentType(ContentType.JSON)
+                .body(payload)
+                .post("/weaviate/request")
+                .then()
+                .statusCode(200)
+                .body("totalCount", Matchers.equalTo(3));
+    }
+
+    private void bm25Query(String collectionName) {
+        Map<String, Object> fields = Map.of("sky", "", "age", "");
+
+        Map<String, Object> payload = Map.of(
+                "body", "10",
+                WeaviateVectorDbHeaders.ACTION, WeaviateVectorDbAction.BM25_QUERY,
+                WeaviateVectorDbHeaders.COLLECTION_NAME, collectionName,
+                WeaviateVectorDbHeaders.QUERY_TOP_K, 10,
+                WeaviateVectorDbHeaders.FIELDS, fields);
+
+        RestAssured.given()
+                .contentType(ContentType.JSON)
+                .body(payload)
+                .post("/weaviate/request")
+                .then()
+                .statusCode(200)
+                .body("result", Matchers.hasSize(2))
+                .body("result.sky", Matchers.containsInAnyOrder("green", "yellow"));
+    }
+
+    private void hybridQuery(String collectionName) {
+        Map<String, Object> fields = Map.of("sky", "", "age", "");
+
+        Map<String, Object> payload = Map.of(
+                "body", "10",
+                WeaviateVectorDbHeaders.ACTION, WeaviateVectorDbAction.HYBRID_QUERY,
+                WeaviateVectorDbHeaders.COLLECTION_NAME, collectionName,
+                WeaviateVectorDbHeaders.QUERY_TOP_K, 10,
+                WeaviateVectorDbHeaders.HYBRID_ALPHA, 0.75,
+                WeaviateVectorDbHeaders.QUERY_VECTOR, Arrays.asList(7.5, 8.5, 9.5),
+                WeaviateVectorDbHeaders.FIELDS, fields);
+
+        RestAssured.given()
+                .contentType(ContentType.JSON)
+                .body(payload)
+                .post("/weaviate/request")
+                .then()
+                .statusCode(200)
+                .body("result", Matchers.hasSize(Matchers.greaterThanOrEqualTo(2)))
+                .body("result[0].sky", Matchers.equalTo("yellow"));
     }
 
     private ValidatableResponse query(String collectionName, List<Float> values, Map<String, String> fields) {
@@ -245,10 +356,6 @@ class WeaviateTest {
                 .post("/weaviate/request")
                 .then()
                 .statusCode(200);
-
-        if (!expectError) {
-            response.body("error", IsEmptyString.emptyOrNullString());
-        }
 
         return response;
     }

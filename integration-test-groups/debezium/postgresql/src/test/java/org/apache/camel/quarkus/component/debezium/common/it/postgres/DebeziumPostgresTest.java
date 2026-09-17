@@ -19,14 +19,17 @@ package org.apache.camel.quarkus.component.debezium.common.it.postgres;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.time.Duration;
+import java.util.UUID;
 
 import io.quarkus.test.common.QuarkusTestResource;
 import io.quarkus.test.junit.QuarkusTest;
 import io.restassured.RestAssured;
 import org.apache.camel.quarkus.test.support.debezium.AbstractDebeziumTest;
+import org.apache.camel.quarkus.test.support.debezium.SharedKafkaTestResource;
 import org.apache.camel.quarkus.test.support.debezium.Type;
+import org.awaitility.Awaitility;
 import org.eclipse.microprofile.config.Config;
-import org.eclipse.microprofile.config.ConfigProvider;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.MethodOrderer;
@@ -34,10 +37,12 @@ import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
 
+import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.*;
 
 @QuarkusTest
 @QuarkusTestResource(value = DebeziumPostgresTestResource.class, restrictToAnnotatedClass = true)
+@QuarkusTestResource(SharedKafkaTestResource.class)
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class DebeziumPostgresTest extends AbstractDebeziumTest {
     private static Connection connection;
@@ -47,8 +52,7 @@ class DebeziumPostgresTest extends AbstractDebeziumTest {
     }
 
     @BeforeAll
-    public static void setUp() throws SQLException {
-        Config config = ConfigProvider.getConfig();
+    public static void setUp(Config config) throws SQLException {
         final String jdbcUrl = config.getValue(Type.postgres.getPropertyJdbc(), String.class);
         connection = DriverManager.getConnection(jdbcUrl);
     }
@@ -60,7 +64,30 @@ class DebeziumPostgresTest extends AbstractDebeziumTest {
         RestAssured.get(Type.postgres.getComponent() + "/getAdditionalProperties")
                 .then()
                 .statusCode(200)
-                .body("'database.connectionTimeZone'", is("CET"));
+                .body("'database.connectionTimeZone'", is("CET"))
+                .body("'bootstrap.servers'", is(notNullValue()));
+    }
+
+    @Test
+    @Order(5)
+    public void testKafkaOffsetBackingStore() throws SQLException {
+        given()
+                .when().get("/debezium-postgres/kafkaBootstrapServers")
+                .then()
+                .statusCode(200)
+                .body(not(equalTo("not-available")))
+                .body(containsString("PLAINTEXT://"));
+
+        String suffix = UUID.randomUUID().toString().substring(0, 8);
+        insertCompany("KafkaOffsetTest_" + suffix, "KafkaCity");
+
+        Awaitility.await().pollDelay(Duration.ofMillis(250)).atMost(Duration.ofMinutes(1)).untilAsserted(() -> {
+            given()
+                    .when().get("/debezium-postgres/receiveViaKafkaOffset")
+                    .then()
+                    .statusCode(200)
+                    .body(is(not(emptyOrNullString())));
+        });
     }
 
     @AfterAll

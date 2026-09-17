@@ -22,13 +22,13 @@
     <parent>
         <groupId>org.apache.camel.quarkus</groupId>
         <artifactId>camel-quarkus-json-patch-parent</artifactId>
-        <version>3.35.0-SNAPSHOT</version>
+        <version>3.40.0-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
     <artifactId>camel-quarkus-json-patch</artifactId>
     <name>Camel Quarkus :: JsonPatch :: Runtime</name>
-    <description>JsonPatch component which transform JSON using JSON patch (RFC 6902).</description>
+    <description>Transforms JSON using JSON patch (RFC 6902).</description>
 
     <properties>
         <camel.quarkus.jvmSince>2.7.0</camel.quarkus.jvmSince>

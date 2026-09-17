@@ -22,13 +22,13 @@
     <parent>
         <groupId>org.apache.camel.quarkus</groupId>
         <artifactId>camel-quarkus-microprofile-fault-tolerance-parent</artifactId>
-        <version>3.35.0-SNAPSHOT</version>
+        <version>3.40.0-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
     <artifactId>camel-quarkus-microprofile-fault-tolerance</artifactId>
     <name>Camel Quarkus :: Microprofile Fault Tolerance :: Runtime</name>
-    <description>Circuit Breaker EIP using Microprofile Fault Tolerance</description>
+    <description>Circuit Breaker EIP using MicroProfile Fault Tolerance</description>
 
     <properties>
         <camel.quarkus.jvmSince>1.0.0</camel.quarkus.jvmSince>

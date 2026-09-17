@@ -16,7 +16,7 @@
  */
 def AGENT_LABEL = env.AGENT_LABEL ?: 'ubuntu'
 def JDK_NAME = env.JDK_NAME ?: 'jdk_17_latest'
-def MAVEN_PARAMS = '-B -e -ntp'
+def MAVEN_PARAMS = '-B -e -ntp -T1C'
 
 pipeline {
 
@@ -33,16 +33,42 @@ pipeline {
             logRotator(artifactNumToKeepStr: '5', numToKeepStr: '10')
         )
         disableConcurrentBuilds()
+        skipDefaultCheckout()
     }
 
     stages {
+        stage('Checkout') {
+            steps {
+                checkout([
+					$class: 'GitSCM',
+                    branches: scm.branches,
+                    userRemoteConfigs: scm.userRemoteConfigs,
+                    extensions: [
+						[$class: 'CloneOption', shallow: true, depth: 1, noTags: true]
+					]
+                ])
+            }
+        }
         stage('Deploy') {
             environment {
                 MAVEN_OPTS = "-Xmx4600m"
             }
             steps {
-                sh "./mvnw ${MAVEN_PARAMS} -Ddeploy -Dquickly clean deploy"
+                sh "./mvnw ${MAVEN_PARAMS} -Ddeploy -Dquickly -Dmaven.install.skip=true clean deploy"
             }
+        }
+    }
+
+    post {
+        always {
+            cleanWs(cleanWhenNotBuilt: false,
+                    cleanWhenUnstable: false,
+                    cleanWhenFailure: false,
+                    cleanWhenAborted: false,
+                    cleanWhenSuccess: true,
+                    deleteDirs: true,
+                    disableDeferredWipeout: true,
+                    notFailBuild: true)
         }
     }
 }

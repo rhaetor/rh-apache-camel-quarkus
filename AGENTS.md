@@ -23,9 +23,10 @@ Rules & guidelines for AI agents working on this codebase.
 Apache Camel Quarkus provides Quarkus extensions for Apache Camel components, enabling users to build integration applications with fast boot times and low memory footprints.
 
 ## What NOT to do
-- Do NOT directly modify generated files under `docs/modules` or `src/main/generated`
+- Do NOT directly modify generated files under `docs/modules` or `src/main/generated` as they are automatically updated by maven
 - Do NOT use dynamic class loading or reflection (impacts native compilation)
 - Do NOT introduce Spring Boot or Spring unless explicitly required
+- Do NOT run `./mvnw process-resources -Pformat -T1C` speculatively — it is needed only for certain changes, and only immediately before committing (see "Code Formatting")
 
 ## Technology Stack
 - Java 17+
@@ -63,9 +64,9 @@ examples/            # Example projects (separate repo: camel-quarkus-examples)
 ./mvnw clean install -Dquickly                 # fast build, no tests
 ./mvnw clean install -T1C -Dquickly            # parallel fast build, no tests
 ./mvnw clean install                           # full build with JVM tests
-./mvnw clean install -Dnative -Ddocker         # full build with native tests (very slow, -Ddocker can usually be omitted on MacOS)
+./mvnw clean install -pl integration-tests/kafka -Dnative  # native tests for a specific module (only for integration-tests/ or integration-test-groups/ modules)
 ./mvnw clean install -pl extensions/kafka -am  # single extension
-./mvnw process-resources -Pformat              # format code & update metadata
+./mvnw process-resources -Pformat -T1C         # format code & update metadata (commit-time only, see "Code Formatting")
 ```
 
 **Tip:** Use `mvnd` (Maven Daemon) for faster builds. Use `-T1C` for parallel builds (1 thread per CPU core).
@@ -74,10 +75,22 @@ examples/            # Example projects (separate repo: camel-quarkus-examples)
 ```bash
 ./mvnw test                              # unit tests
 ./mvnw verify                            # integration tests JVM mode
-./mvnw verify -Dnative -Ddocker          # integration tests JVM + native mode (-Ddocker can usually be omitted on MacOS)
+./mvnw verify -pl integration-tests/kafka -Dnative  # native tests for a specific module (only for integration-tests/ or integration-test-groups/ modules)
 ./mvnw test -Dtest=MyTest                # specific test
 ./mvnw test -pl integration-tests/kafka  # specific module
 ```
+
+## Code Formatting
+
+`./mvnw process-resources -Pformat -T1C` — run it once, immediately before committing, and only when the change actually needs it. For many changes it is a no-op. Never run it after individual edits.
+
+**Run** when you added files (license headers) or edited a `pom.xml` containing a `mvn process-resources` comment reference (for sorting or virtual dependencies).
+
+**Skip** for Java-only or docs-only edits: the default build already formats Java and sorts imports at `process-sources` (unless `-Dquickly`).
+
+To regenerate one extension's docs on its own: `./mvnw -pl extensions/kafka/deployment process-classes`.
+
+It rewrites files in place, so run it **before `git add`**, or re-stage after. Always run it from the project root and pass `-T1C`.
 
 ## Extension Structure
 ```
@@ -169,8 +182,9 @@ After making changes, run the following from the project root to sync and regene
 ```
 
 ### 6. Format & style
+Deferred to commit time — do not run this after each edit. See "Code Formatting".
 ```bash
-./mvnw process-resources -Pformat
+./mvnw process-resources -Pformat -T1C
 ```
 
 ## Integration Tests
@@ -196,6 +210,12 @@ class KafkaIT extends KafkaTest {
 }
 ```
 
+### Important Constraints
+
+- **No `@Inject` in `@QuarkusIntegrationTest`**: Integration tests run the application as a separate process, so CDI injection does not work. Expose application state via JAX-RS endpoints (using `quarkus-resteasy`) and assert via RestAssured in tests. See `integration-test-groups/foundation/core/` for the pattern.
+- **Every `@QuarkusTest` needs an IT class**: Each `@QuarkusTest` class must have a corresponding `@QuarkusIntegrationTest` class that extends it, to ensure tests also run in native mode.
+- **Grouped test modules share one native application**: Modules under `integration-test-groups/` are compiled into a single grouped native binary per group. Properties in one module's `application.properties` affect ALL modules in the group. Avoid setting properties that alter global Camel behavior (e.g. `camel.main.duration-max-messages`).
+
 ## Troubleshooting Native Build Failures
 Native compilation with GraalVM requires explicit registration of classes, resources, and proxies. Register these in the deployment module's `*Processor.java` using `@BuildStep` methods. Common patterns:
 
@@ -209,7 +229,26 @@ Native compilation with GraalVM requires explicit registration of classes, resou
 
 Use `CombinedIndexBuildItem` to discover classes at build time — see `extensions/servicenow/deployment/.../ServicenowProcessor.java`.
 
+**Camel components already ship with a Jandex index.** Do not add `IndexDependencyBuildItem` for Camel component JARs (e.g. `camel-a2a`, `camel-kafka`). `CombinedIndexBuildItem` can discover their classes directly. Only add `IndexDependencyBuildItem` for non-Camel third-party libraries that lack a Jandex index.
+
 See also https://quarkus.io/guides/writing-extensions.
+
+## Security Model
+
+Camel Quarkus inherits the security model from Apache Camel. The canonical document is
+[`docs/modules/ROOT/pages/user-guide/security-model.adoc`](docs/modules/ROOT/pages/user-guide/security-model.adoc).
+Use it as the reference when triaging security reports, deciding whether a finding warrants a
+CVE, or reviewing a security-sensitive PR.
+
+### Extension author review checklist (for security-sensitive PRs)
+
+All guidance from https://camel.apache.org/manual/security-model.html applies (header filtering,
+object input filters, secure defaults, auth enforcement). In addition, for Camel Quarkus extensions:
+
+- Does the change add resource registration (`NativeImageResourceBuildItem`) for files that contain
+  secrets or should not be embedded in the native image?
+- Does a new build-time configuration option control a security-relevant default? Prefer
+  `ConfigPhase.RUN_TIME` unless build-time is strictly necessary for native compilation.
 
 ## Common Tasks
 

@@ -25,7 +25,7 @@ import org.apache.hc.client5.http.entity.BrotliDecompressingEntity;
 import org.apache.hc.client5.http.entity.BrotliInputStreamFactory;
 
 /**
- * Remove references to optional brotli:dec dependency.
+ * Remove references to optional brotli4j dependency.
  */
 final class BrotliSubstitutions {
 }
@@ -35,7 +35,7 @@ final class SubstituteBrotliInputStreamFactory {
     @Substitute
     public InputStream create(InputStream inputStream) throws IOException {
         throw new UnsupportedOperationException(
-                "Cannot create BrotliInputStream. Add org.brotli:dec to the application classpath.");
+                "Cannot create BrotliInputStream. Add com.aayushatharva.brotli4j:brotli4j to the application classpath.");
     }
 }
 
@@ -43,6 +43,18 @@ final class SubstituteBrotliInputStreamFactory {
 final class SubstituteBrotliDecompressingEntity {
     @Substitute
     public static boolean isAvailable() {
+        return false;
+    }
+}
+
+/*
+ * Cuts the reachability chain from ContentCompressionAsyncExec and ContentCodecRegistry to
+ * InflatingBrotliDataConsumer and BrotliCodecFactory, which reference brotli4j types directly.
+ */
+@TargetClass(className = "org.apache.hc.client5.http.impl.Brotli4jRuntime", onlyWith = { BrotliAbsentBooleanSupplier.class })
+final class SubstituteBrotli4jRuntime {
+    @Substitute
+    public static boolean available() {
         return false;
     }
 }

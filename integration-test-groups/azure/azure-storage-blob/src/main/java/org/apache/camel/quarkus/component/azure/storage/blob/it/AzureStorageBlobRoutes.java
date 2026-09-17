@@ -27,6 +27,8 @@ import org.eclipse.microprofile.config.inject.ConfigProperty;
 public class AzureStorageBlobRoutes extends RouteBuilder {
 
     public static final String BLOB_NAME = "test";
+    public static final String APPEND_BLOB_NAME = "test-append";
+    public static final String PAGE_BLOB_NAME = "test-page";
 
     @ConfigProperty(name = "azure.storage.account-name")
     public String azureStorageAccountName;
@@ -102,25 +104,25 @@ public class AzureStorageBlobRoutes extends RouteBuilder {
                 .to(componentUri(BlobOperationsDefinition.getBlobBlockList));
 
         from("direct:createAppendBlob")
-                .to(componentUri(BlobOperationsDefinition.createAppendBlob));
+                .to(componentUri(BlobOperationsDefinition.createAppendBlob, APPEND_BLOB_NAME));
 
         from("direct:commitAppendBlob")
-                .to(componentUri(BlobOperationsDefinition.commitAppendBlob));
+                .to(componentUri(BlobOperationsDefinition.commitAppendBlob, APPEND_BLOB_NAME));
 
         from("direct:createPageBlob")
-                .to(componentUri(BlobOperationsDefinition.createPageBlob));
+                .to(componentUri(BlobOperationsDefinition.createPageBlob, PAGE_BLOB_NAME));
 
         from("direct:uploadPageBlob")
-                .to(componentUri(BlobOperationsDefinition.uploadPageBlob));
+                .to(componentUri(BlobOperationsDefinition.uploadPageBlob, PAGE_BLOB_NAME));
 
         from("direct:resizePageBlob")
-                .to(componentUri(BlobOperationsDefinition.resizePageBlob));
+                .to(componentUri(BlobOperationsDefinition.resizePageBlob, PAGE_BLOB_NAME));
 
         from("direct:clearPageBlob")
-                .to(componentUri(BlobOperationsDefinition.clearPageBlob));
+                .to(componentUri(BlobOperationsDefinition.clearPageBlob, PAGE_BLOB_NAME));
 
         from("direct:getPageBlobRanges")
-                .to(componentUri(BlobOperationsDefinition.getPageBlobRanges));
+                .to(componentUri(BlobOperationsDefinition.getPageBlobRanges, PAGE_BLOB_NAME));
 
         from("direct:getChangeFeed")
                 .toF(componentUri(BlobOperationsDefinition.getChangeFeed));
@@ -133,17 +135,52 @@ public class AzureStorageBlobRoutes extends RouteBuilder {
 
         from("direct:deleteBlobContainer")
                 .to(componentUri(BlobOperationsDefinition.deleteBlobContainer));
+
+        from("direct:createBlobSnapshot")
+                .to(componentUri(BlobOperationsDefinition.createBlobSnapshot));
+
+        from("direct:readBlobSnapshot")
+                .to(componentUri(BlobOperationsDefinition.getBlob));
+
+        from("direct:setBlobTags")
+                .to(componentUri(BlobOperationsDefinition.setBlobTags));
+
+        from("direct:getBlobTags")
+                .to(componentUri(BlobOperationsDefinition.getBlobTags));
+
+        from("direct:findBlobsByTags")
+                .toF("azure-storage-blob://%s?operation=%s",
+                        azureStorageAccountName,
+                        BlobOperationsDefinition.findBlobsByTags.name());
+
+        from("direct:listBlobVersions")
+                .toF("azure-storage-blob://%s/%s?operation=%s",
+                        azureStorageAccountName,
+                        azureBlobContainerName,
+                        BlobOperationsDefinition.listBlobVersions.name());
+
+        from("direct:readBlobVersion")
+                .to(componentUri(BlobOperationsDefinition.getBlob));
     }
 
     private String componentUri(final BlobOperationsDefinition operation) {
-        return componentUri("azure-storage-blob", operation);
+        return componentUri("azure-storage-blob", operation, BLOB_NAME);
+    }
+
+    private String componentUri(final BlobOperationsDefinition operation, final String blobName) {
+        return componentUri("azure-storage-blob", operation, blobName);
     }
 
     private String componentUri(final String componentName, final BlobOperationsDefinition operation) {
+        return componentUri(componentName, operation, BLOB_NAME);
+    }
+
+    private String componentUri(final String componentName, final BlobOperationsDefinition operation,
+            final String blobName) {
         return String.format("%s://%s/%s?operation=%s&blobName=%s",
                 componentName,
                 azureStorageAccountName,
                 azureBlobContainerName,
-                operation.name(), BLOB_NAME);
+                operation.name(), blobName);
     }
 }

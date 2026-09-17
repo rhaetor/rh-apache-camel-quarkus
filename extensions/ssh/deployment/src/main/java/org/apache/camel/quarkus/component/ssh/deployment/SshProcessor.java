@@ -33,7 +33,6 @@ import io.quarkus.deployment.builditem.nativeimage.NativeImageProxyDefinitionBui
 import io.quarkus.deployment.builditem.nativeimage.NativeImageResourceBuildItem;
 import io.quarkus.deployment.builditem.nativeimage.ReflectiveClassBuildItem;
 import io.quarkus.deployment.builditem.nativeimage.RuntimeInitializedClassBuildItem;
-import net.i2p.crypto.eddsa.EdDSAEngine;
 import org.apache.sshd.common.channel.ChannelListener;
 import org.apache.sshd.common.forward.PortForwardingEventListener;
 import org.apache.sshd.common.io.nio2.Nio2ServiceFactoryFactory;
@@ -52,14 +51,13 @@ class SshProcessor {
     @BuildStep
     void registerForReflection(BuildProducer<ReflectiveClassBuildItem> reflectiveClasses) {
         reflectiveClasses.produce(
-                ReflectiveClassBuildItem.builder(KeyPairGenerator.class,
+                ReflectiveClassBuildItem.builder(
+                        KeyPairGenerator.class,
                         KeyAgreement.class,
                         KeyFactory.class,
                         Signature.class,
                         Mac.class,
-                        Nio2ServiceFactoryFactory.class,
-                        EdDSAEngine.class,
-                        net.i2p.crypto.eddsa.KeyFactory.class).methods().build());
+                        Nio2ServiceFactoryFactory.class).methods().build());
     }
 
     @BuildStep

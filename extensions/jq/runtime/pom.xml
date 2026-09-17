@@ -22,13 +22,13 @@
     <parent>
         <groupId>org.apache.camel.quarkus</groupId>
         <artifactId>camel-quarkus-jq-parent</artifactId>
-        <version>3.35.0-SNAPSHOT</version>
+        <version>3.40.0-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
     <artifactId>camel-quarkus-jq</artifactId>
     <name>Camel Quarkus :: JQ :: Runtime</name>
-    <description>Evaluates a JQ expression against a JSON message body.</description>
+    <description>Evaluates a JQ expression against a JSON message body</description>
 
     <properties>
         <camel.quarkus.jvmSince>2.11.0</camel.quarkus.jvmSince>

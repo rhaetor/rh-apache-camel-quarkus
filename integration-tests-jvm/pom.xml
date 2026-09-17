@@ -23,7 +23,7 @@
     <parent>
         <groupId>org.apache.camel.quarkus</groupId>
         <artifactId>camel-quarkus</artifactId>
-        <version>3.35.0-SNAPSHOT</version>
+        <version>3.40.0-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -35,7 +35,6 @@
     <modules>
         <module>asn1</module>
         <module>asterisk</module>
-        <module>aws-xray</module>
         <module>azure-cosmosdb</module>
         <module>azure-files</module>
         <module>barcode</module>
@@ -51,20 +50,17 @@
         <module>controlbus-statistics</module>
         <module>couchbase</module>
         <module>dfdl</module>
+        <module>diagram</module>
         <module>djl</module>
         <module>dns</module>
         <module>drill</module>
         <module>dsl-modeline</module>
         <module>ehcache</module>
-        <module>elasticsearch</module>
         <module>fastjson</module>
         <module>flink</module>
         <module>google-functions</module>
-        <module>guava-eventbus</module>
         <module>huaweicloud-smn</module>
         <module>ibm-secrets-manager</module>
-        <module>ibm-watson-discovery</module>
-        <module>ibm-watson-language</module>
         <module>iec60870</module>
         <module>ignite</module>
         <module>irc</module>
@@ -76,13 +72,11 @@
         <module>json-patch</module>
         <module>jsonapi</module>
         <module>junit-test-framework</module>
-        <module>langchain4j-agent-ql4j</module>
         <module>ldif</module>
         <module>lucene</module>
         <module>main-devmode</module>
         <module>mvel</module>
         <module>opensearch</module>
-        <module>pqc</module>
         <module>printer</module>
         <module>pulsar</module>
         <module>python</module>
@@ -95,7 +89,6 @@
         <module>snmp</module>
         <module>spring-redis</module>
         <module>stitch</module>
-        <module>stomp</module>
         <module>stub</module>
         <module>thrift</module>
         <module>web3j</module>

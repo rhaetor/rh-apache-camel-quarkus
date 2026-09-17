@@ -20,17 +20,30 @@ import io.quarkus.test.junit.QuarkusTest;
 import io.restassured.RestAssured;
 import org.junit.jupiter.api.Test;
 
+import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.not;
 
 @QuarkusTest
 class MdcTest {
 
     @Test
-    public void test() {
-        RestAssured.get("/mdc/trace")
+    void testCustomHeader() {
+        RestAssured.get("/mdc/customHeader")
                 .then()
                 .statusCode(200)
                 .body(equalTo("HELO"));
     }
 
+    @Test
+    void testDefaultMdcFields() {
+        RestAssured.get("/mdc/defaultFields")
+                .then()
+                .statusCode(200)
+                .body(containsString("exchangeId:"), not(containsString("exchangeId:null")))
+                .body(containsString("messageId:"), not(containsString("messageId:null")))
+                .body(containsString("routeId:"), not(containsString("routeId:null")))
+                .body(containsString("contextId:"), not(containsString("contextId:null")))
+                .body(containsString("threadId:"), not(containsString("threadId:null")));
+    }
 }

@@ -19,6 +19,7 @@ package org.apache.camel.quarkus.test.support.aws2;
 public enum Service {
     API_GATEWAY("apigateway"),
     EC2("ec2"),
+    EKS("eks"),
     KINESIS("kinesis"),
     DYNAMODB("dynamodb"),
     DYNAMODB_STREAMS("dynamodbstreams"),

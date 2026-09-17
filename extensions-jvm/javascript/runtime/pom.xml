@@ -22,13 +22,13 @@
     <parent>
         <groupId>org.apache.camel.quarkus</groupId>
         <artifactId>camel-quarkus-javascript-parent</artifactId>
-        <version>3.35.0-SNAPSHOT</version>
+        <version>3.40.0-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
     <artifactId>camel-quarkus-javascript</artifactId>
     <name>Camel Quarkus :: JavaScript :: Runtime</name>
-    <description>Evaluates a JavaScript expression.</description>
+    <description>Evaluates a JavaScript expression</description>
 
     <properties>
         <camel.quarkus.jvmSince>3.14.0</camel.quarkus.jvmSince>

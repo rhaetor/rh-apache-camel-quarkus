@@ -37,15 +37,52 @@ class JolokiaTest {
         RestAssured.port = 8778;
     }
 
+    /**
+     * Pins which client addresses Jolokia passes to the restrictor. Since Jolokia 2.6.1, Forwarded,
+     * X-Forwarded-For and X-Real-IP values join the address chain whatever trustProxyHeaders is set to, and
+     * CamelJolokiaRestrictor requires every address in the chain to be loopback. A client that claims to be
+     * forwarding for a remote address is therefore refused, even though it connected over loopback.
+     *
+     * If this test fails after a Jolokia upgrade, the address chain semantics have changed and the migration
+     * guide needs to describe it.
+     */
+    @Test
+    void spoofedProxyHeaderDeniesAccess() {
+        RestAssured.given()
+                .header("X-Forwarded-For", "10.1.2.3")
+                .get("/jolokia/")
+                .then()
+                .statusCode(200)
+                .body("status", equalTo(403));
+    }
+
+    @Test
+    void loopbackProxyHeaderAllowed() {
+        RestAssured.given()
+                .header("X-Forwarded-For", "127.0.0.1")
+                .get("/jolokia/")
+                .then()
+                .statusCode(200)
+                .body("status", equalTo(200));
+    }
+
     @Test
     void defaultConfiguration() {
+        // Read the configured discovery mode to determine expected discoveryEnabled value
+        // Some machines don't support IPV4 multicast
+        String discoveryMode = ConfigProvider.getConfig()
+                .getOptionalValue("quarkus.camel.jolokia.server.discovery-enabled-mode", String.class)
+                .orElse("all");
+
+        boolean discoveryExpected = !"none".equals(discoveryMode);
+
         RestAssured.given()
                 .get("/jolokia/")
                 .then()
                 .statusCode(200)
                 .body(
                         "status", equalTo(200),
-                        "value.config.discoveryEnabled", equalTo("true"),
+                        "value.config.discoveryEnabled", equalTo(String.valueOf(discoveryExpected)),
                         "value.config.restrictorClass", equalTo(CamelJolokiaRestrictor.class.getName()),
                         "value.config.agentDescription", equalTo("camel-quarkus-integration-test-jolokia"),
                         "value.details.url", matchesPattern("http://.*:8778/jolokia"));
@@ -103,5 +140,29 @@ class JolokiaTest {
                 .statusCode(200)
                 .body(
                         "status", equalTo(403));
+    }
+
+    @Test
+    void disallowedDomainExecDenied() {
+        String payload = "{\"type\":\"exec\",\"mbean\":\"java.util.logging:type=Logging\",\"operation\":\"getLoggerLevel\",\"arguments\":[\"\"]}";
+        RestAssured.given()
+                .contentType(ContentType.JSON)
+                .body(payload)
+                .post("/jolokia/")
+                .then()
+                .statusCode(200)
+                .body("status", equalTo(403));
+    }
+
+    @Test
+    void disallowedDomainWriteDenied() {
+        String payload = "{\"type\":\"write\",\"mbean\":\"java.util.logging:type=Logging\",\"attribute\":\"LoggerNames\",\"value\":\"test\"}";
+        RestAssured.given()
+                .contentType(ContentType.JSON)
+                .body(payload)
+                .post("/jolokia/")
+                .then()
+                .statusCode(200)
+                .body("status", equalTo(403));
     }
 }

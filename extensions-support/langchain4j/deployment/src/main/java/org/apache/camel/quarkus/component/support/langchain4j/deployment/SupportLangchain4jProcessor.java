@@ -31,7 +31,6 @@ import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import dev.langchain4j.agent.tool.Tool;
 import dev.langchain4j.guardrail.InputGuardrail;
-import dev.langchain4j.guardrail.JsonExtractorOutputGuardrail;
 import dev.langchain4j.guardrail.OutputGuardrail;
 import dev.langchain4j.model.embedding.onnx.AbstractInProcessEmbeddingModel;
 import dev.langchain4j.service.MemoryId;
@@ -69,6 +68,9 @@ import org.jboss.jandex.Type;
 
 @BuildSteps(onlyIf = NativeOrNativeSourcesBuild.class)
 class SupportLangchain4jProcessor {
+    static final DotName JSON_EXTRACTOR_OUTPUT_GUARDRAIL = DotName
+            .createSimple("dev.langchain4j.guardrails.JsonExtractorOutputGuardrail");
+
     private static final Class<?>[] AI_SERVICE_ANNOTATION_CLASSES = {
             MemoryId.class,
             SystemMessage.class,
@@ -79,7 +81,7 @@ class SupportLangchain4jProcessor {
     @BuildStep
     void indexDependencies(CurateOutcomeBuildItem curateOutcome, BuildProducer<IndexDependencyBuildItem> indexedDependencies) {
         ApplicationModel applicationModel = curateOutcome.getApplicationModel();
-        for (ResolvedDependency dependency : applicationModel.getDependencies()) {
+        for (ResolvedDependency dependency : applicationModel.getRuntimeDependencies()) {
             if (dependency.getGroupId().equals("dev.langchain4j")) {
                 indexedDependencies.produce(new IndexDependencyBuildItem(dependency.getGroupId(), dependency.getArtifactId()));
             }
@@ -162,7 +164,7 @@ class SupportLangchain4jProcessor {
         }
 
         // Any types participating in JsonExtractorOutputGuardrail operations require reflection
-        index.getAllKnownSubclasses(JsonExtractorOutputGuardrail.class)
+        index.getAllKnownSubclasses(JSON_EXTRACTOR_OUTPUT_GUARDRAIL)
                 .stream()
                 .filter(classInfo -> classInfo.superClassType() != null)
                 .filter(classInfo -> classInfo.superClassType().kind().equals(Type.Kind.PARAMETERIZED_TYPE))
@@ -248,7 +250,7 @@ class SupportLangchain4jProcessor {
             BuildProducer<IndexDependencyBuildItem> indexDependency) {
 
         ApplicationModel applicationModel = curateOutcome.getApplicationModel();
-        for (ResolvedDependency dependency : applicationModel.getDependencies()) {
+        for (ResolvedDependency dependency : applicationModel.getRuntimeDependencies()) {
             String groupId = dependency.getGroupId();
             String artifactId = dependency.getArtifactId();
 
@@ -300,7 +302,7 @@ class SupportLangchain4jProcessor {
 
         nativeImageResource.produce(new NativeImageResourceBuildItem("native/lib/tokenizers.properties"));
 
-        for (ResolvedDependency dependency : curateOutcome.getApplicationModel().getDependencies()) {
+        for (ResolvedDependency dependency : curateOutcome.getApplicationModel().getRuntimeDependencies()) {
             String artifactId = dependency.getArtifactId();
 
             // Native image resources for embeddings tokenizer metadata

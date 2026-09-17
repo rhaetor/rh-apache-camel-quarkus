@@ -22,13 +22,13 @@
     <parent>
         <groupId>org.apache.camel.quarkus</groupId>
         <artifactId>camel-quarkus-python-parent</artifactId>
-        <version>3.35.0-SNAPSHOT</version>
+        <version>3.40.0-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
     <artifactId>camel-quarkus-python</artifactId>
     <name>Camel Quarkus :: Python :: Runtime</name>
-    <description>Evaluates a Python expression.</description>
+    <description>Evaluates a Python expression</description>
 
     <properties>
         <camel.quarkus.jvmSince>3.24.0</camel.quarkus.jvmSince>

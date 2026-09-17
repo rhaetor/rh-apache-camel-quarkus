@@ -21,12 +21,13 @@
     <parent>
         <groupId>org.apache.camel.quarkus</groupId>
         <artifactId>camel-quarkus-netty-http-parent</artifactId>
-        <version>3.35.0-SNAPSHOT</version>
+        <version>3.40.0-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>camel-quarkus-netty-http</artifactId>
     <name>Camel Quarkus :: Netty HTTP :: Runtime</name>
+    <description>Netty HTTP server and client using the Netty 4.x.</description>
 
     <properties>
         <camel.quarkus.jvmSince>0.2.0</camel.quarkus.jvmSince>

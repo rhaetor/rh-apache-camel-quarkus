@@ -22,13 +22,13 @@
     <parent>
         <groupId>org.apache.camel.quarkus</groupId>
         <artifactId>camel-quarkus-once-parent</artifactId>
-        <version>3.35.0-SNAPSHOT</version>
+        <version>3.40.0-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
     <artifactId>camel-quarkus-once</artifactId>
     <name>Camel Quarkus :: Once :: Runtime</name>
-    <description>Camel Once component</description>
+    <description>Trigger a single message only once at startup (useful for development and testing purposes).</description>
 
     <properties>
         <camel.quarkus.jvmSince>3.31.0</camel.quarkus.jvmSince>

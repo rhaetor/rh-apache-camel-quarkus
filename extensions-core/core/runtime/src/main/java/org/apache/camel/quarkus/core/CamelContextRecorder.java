@@ -29,8 +29,6 @@ import org.apache.camel.catalog.RuntimeCamelCatalog;
 import org.apache.camel.clock.Clock;
 import org.apache.camel.impl.debugger.BacklogTracer;
 import org.apache.camel.impl.engine.DefaultVariableRepositoryFactory;
-import org.apache.camel.quarkus.core.dataformat.CamelDataFormatRuntimeConfig;
-import org.apache.camel.quarkus.core.dataformat.CamelQuarkusDataFormatConfigLifecycleStrategy;
 import org.apache.camel.quarkus.core.devmode.NoOpModelineFactory;
 import org.apache.camel.quarkus.core.devmode.NoShutdownStrategy;
 import org.apache.camel.spi.CamelContextCustomizer;
@@ -50,11 +48,6 @@ import org.eclipse.microprofile.config.ConfigProvider;
 
 @Recorder
 public class CamelContextRecorder {
-    private final RuntimeValue<CamelDataFormatRuntimeConfig> dataFormatConfig;
-
-    public CamelContextRecorder(RuntimeValue<CamelDataFormatRuntimeConfig> dataFormatConfig) {
-        this.dataFormatConfig = dataFormatConfig;
-    }
 
     public RuntimeValue<CamelContext> createContext(
             RuntimeValue<Registry> registry,
@@ -167,6 +160,18 @@ public class CamelContextRecorder {
             tracer.setTracePattern(trace.tracePattern().orElse(null));
             tracer.setTraceFilter(trace.traceFilter().orElse(null));
 
+            // activityEnabled: prefer quarkus.camel.trace.activity-enabled, fall back to camel.trace.activity-enabled
+            boolean activityEnabled = ConfigProvider.getConfig()
+                    .getOptionalValue("camel.trace.activity-enabled", Boolean.class)
+                    .orElse(trace.activityEnabled());
+            tracer.setActivityEnabled(activityEnabled);
+
+            // activitySize: prefer quarkus.camel.trace.activity-size, fall back to camel.trace.activity-size
+            int activitySize = ConfigProvider.getConfig()
+                    .getOptionalValue("camel.trace.activity-size", Integer.class)
+                    .orElse(trace.activitySize());
+            tracer.setActivitySize(activitySize);
+
             context.getCamelContextExtension().addContextPlugin(BacklogTracer.class, tracer);
         });
     }
@@ -192,13 +197,4 @@ public class CamelContextRecorder {
         return new RuntimeValue<>(clock);
     }
 
-    public RuntimeValue<CamelContextCustomizer> registerDataFormatLifecycleStrategy() {
-        return new RuntimeValue<>(new CamelContextCustomizer() {
-            @Override
-            public void configure(CamelContext camelContext) {
-                camelContext.addLifecycleStrategy(
-                        new CamelQuarkusDataFormatConfigLifecycleStrategy(camelContext, dataFormatConfig.getValue()));
-            }
-        });
-    }
 }

@@ -16,14 +16,18 @@
  */
 package org.apache.camel.quarkus.core.it.routeconfigurations;
 
-import io.quarkus.runtime.annotations.RegisterForReflection;
-
 /**
  * Having an Exception implementation dedicated to route configurations tests
  * reinforce tests isolation. It's especially useful when the foundation tests
  * are running grouped.
+ *
+ * Note: This class intentionally does NOT use {@code @RegisterForReflection}.
+ * The build step in {@code CamelNativeImageProcessor#registerOnExceptionClassesForReflection}
+ * auto-detects it from the {@code onException(RouteConfigurationsException.class)} calls
+ * in the Java DSL route builders.
+ *
+ * @see <a href="https://github.com/apache/camel-quarkus/issues/7841">camel-quarkus#7841</a>
  */
-@RegisterForReflection
 public class RouteConfigurationsException extends Exception {
 
     private static final long serialVersionUID = 1L;

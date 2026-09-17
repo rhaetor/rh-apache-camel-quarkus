@@ -31,4 +31,8 @@ metadata:
   - "integration"
   config:
   - "quarkus.camel.opentelemetry"
-  status: "stable"
+  status: "deprecated"
+  integrates:
+    - name: "Camel"
+      artifact: "org.apache.camel:camel-base"
+      version: "${camel.version}"

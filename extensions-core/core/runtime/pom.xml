@@ -21,7 +21,7 @@
     <parent>
         <groupId>org.apache.camel.quarkus</groupId>
         <artifactId>camel-quarkus-core-parent</artifactId>
-        <version>3.35.0-SNAPSHOT</version>
+        <version>3.40.0-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -32,6 +32,7 @@
     <properties>
         <camel.quarkus.jvmSince>0.0.1</camel.quarkus.jvmSince>
         <camel.quarkus.nativeSince>0.0.1</camel.quarkus.nativeSince>
+        <cq.descriptionSync>false</cq.descriptionSync>
     </properties>
 
     <dependencies>
@@ -102,8 +103,9 @@
                         <provides>org.apache.camel</provides>
                     </capabilities>
                     <conditionalDevDependencies>
-                        <artifact>org.apache.camel.quarkus:camel-quarkus-console:${project.version}</artifact>
+                        <artifact>org.apache.camel.quarkus:camel-quarkus-cli-connector:${project.version}</artifact>
                         <artifact>org.apache.camel.quarkus:camel-quarkus-debug:${project.version}</artifact>
+                        <artifact>org.apache.camel.quarkus:camel-quarkus-diagram:${project.version}</artifact>
                     </conditionalDevDependencies>
                 </configuration>
             </plugin>

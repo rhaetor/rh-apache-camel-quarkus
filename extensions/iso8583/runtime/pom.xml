@@ -22,13 +22,13 @@
     <parent>
         <groupId>org.apache.camel.quarkus</groupId>
         <artifactId>camel-quarkus-iso8583-parent</artifactId>
-        <version>3.35.0-SNAPSHOT</version>
+        <version>3.40.0-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
     <artifactId>camel-quarkus-iso8583</artifactId>
     <name>Camel Quarkus :: ISO-8583 :: Runtime</name>
-    <description>Create, edit and read ISO-8583 messages.</description>
+    <description>Create, edit and read ISO-8583 messages</description>
 
     <properties>
         <camel.quarkus.jvmSince>3.26.0</camel.quarkus.jvmSince>

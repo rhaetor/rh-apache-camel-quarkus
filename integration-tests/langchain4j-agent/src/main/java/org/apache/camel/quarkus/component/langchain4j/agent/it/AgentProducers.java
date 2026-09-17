@@ -41,7 +41,6 @@ import dev.langchain4j.rag.content.retriever.EmbeddingStoreContentRetriever;
 import dev.langchain4j.store.embedding.EmbeddingStore;
 import dev.langchain4j.store.embedding.inmemory.InMemoryEmbeddingStore;
 import dev.langchain4j.store.memory.chat.ChatMemoryStore;
-import io.quarkus.arc.lookup.LookupUnlessProperty;
 import io.smallrye.common.annotation.Identifier;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.inject.Produces;
@@ -68,7 +67,7 @@ public class AgentProducers {
     String baseUrl;
 
     @ConfigProperty(name = "nodejs.installed")
-    boolean isNodeJSInstaled;
+    boolean isNodeJSInstalled;
 
     @Produces
     @Identifier("ollamaOrcaMiniModel")
@@ -98,8 +97,7 @@ public class AgentProducers {
     }
 
     @Produces
-    //in special cases (used by test modules inheriting this module), lookup of this bean has to be disabled
-    @LookupUnlessProperty(name = "cq-test.retrieval.augmentor.disabled", stringValue = "true")
+    @Identifier("ragAugmentor")
     RetrievalAugmentor retrievalAugmentor() throws IOException {
         ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
         try (InputStream stream = classLoader.getResourceAsStream("rag/company-knowledge-base.txt")) {
@@ -198,7 +196,7 @@ public class AgentProducers {
     @Identifier("agentWithRag")
     public Agent agentWithRag(
             @Identifier("ollamaOrcaMiniModel") ChatModel chatModel,
-            RetrievalAugmentor retrievalAugmentor) throws IOException {
+            @Identifier("ragAugmentor") RetrievalAugmentor retrievalAugmentor) throws IOException {
         return new AgentWithoutMemory(new AgentConfiguration()
                 .withChatModel(chatModel)
                 .withRetrievalAugmentor(retrievalAugmentor));
@@ -210,11 +208,20 @@ public class AgentProducers {
         return new AgentWithoutMemory(new AgentConfiguration().withChatModel(chatModel));
     }
 
+    // Configurable: in the langchain4j-agent-ql4j flavor this custom AiService receives the
+    // registered ai-tools (the all-tools default for user-built services), so there it must be
+    // backed by a tool-capable model — orca-mini rejects requests carrying tools.
+    @ConfigProperty(name = "agent.tests.custom-service-model-id", defaultValue = "orca-mini")
+    String customServiceModelId;
+
     @Produces
     @Identifier("agentWithCustomService")
-    public Agent agentCustom(
-            @Identifier("ollamaOrcaMiniModel") ChatModel chatModel,
-            ObjectMapper objectMapper) {
+    public Agent agentCustom(ObjectMapper objectMapper) {
+        ChatModel chatModel = OllamaChatModel.builder()
+                .baseUrl(baseUrl)
+                .modelName(customServiceModelId)
+                .temperature(0.3)
+                .build();
         return new TestPojoAiAgent(new AgentConfiguration()
                 .withChatModel(chatModel), objectMapper);
     }
@@ -228,9 +235,40 @@ public class AgentProducers {
     }
 
     @Produces
+    @Identifier("agentConfigSimple")
+    AgentConfiguration agentConfigSimple(@Identifier("ollamaOrcaMiniModel") ChatModel chatModel) {
+        return new AgentConfiguration().withChatModel(chatModel);
+    }
+
+    @Produces
+    @Identifier("agentConfigWithMemory")
+    AgentConfiguration agentConfigWithMemory(@Identifier("granite4Model") ChatModel chatModel,
+            ChatMemoryStore chatMemoryStore) {
+        ChatMemoryProvider chatMemoryProvider = memoryId -> MessageWindowChatMemory.builder()
+                .id(memoryId)
+                .maxMessages(10)
+                .chatMemoryStore(chatMemoryStore)
+                .build();
+        return new AgentConfiguration()
+                .withChatModel(chatModel)
+                .withChatMemoryProvider(chatMemoryProvider);
+    }
+
+    @Produces
+    @Identifier("agentConfigForMcp")
+    AgentConfiguration agentConfigForMcp(@Identifier("granite4Model") ChatModel chatModel) {
+        return new AgentConfiguration()
+                .withChatModel(chatModel)
+                .withMcpToolProviderFilter((mcpClient, toolSpecification) -> {
+                    String toolName = toolSpecification.name().toLowerCase();
+                    return toolName.contains("add") || toolName.contains("echo") || toolName.contains("long");
+                });
+    }
+
+    @Produces
     @Identifier("agentWithMcpClient")
     Agent agentWithMcpClient(@Identifier("granite4Model") ChatModel chatModel) {
-        if (isNodeJSInstaled) {
+        if (isNodeJSInstalled) {
             return new AgentWithoutMemory(new AgentConfiguration()
                     .withChatModel(chatModel)
                     .withMcpClient(new DefaultMcpClient.Builder()

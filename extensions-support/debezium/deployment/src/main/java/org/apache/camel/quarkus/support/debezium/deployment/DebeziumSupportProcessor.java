@@ -16,12 +16,14 @@
  */
 package org.apache.camel.quarkus.support.debezium.deployment;
 
+import io.debezium.connector.base.DefaultQueueProvider;
 import io.debezium.connector.common.BaseSourceTask;
 import io.debezium.embedded.async.ConvertingAsyncEngineBuilderFactory;
 import io.debezium.engine.DebeziumEngine;
 import io.debezium.pipeline.notification.channels.LogNotificationChannel;
 import io.debezium.pipeline.notification.channels.SinkNotificationChannel;
 import io.debezium.pipeline.notification.channels.jmx.JmxNotificationChannel;
+import io.debezium.pipeline.signal.actions.SignalActionProvider;
 import io.debezium.pipeline.signal.actions.StandardActionProvider;
 import io.debezium.pipeline.signal.channels.FileSignalChannel;
 import io.debezium.pipeline.signal.channels.KafkaSignalChannel;
@@ -35,21 +37,21 @@ import io.debezium.snapshot.mode.AlwaysSnapshotter;
 import io.debezium.snapshot.mode.ConfigurationBasedSnapshotter;
 import io.debezium.snapshot.mode.InitialOnlySnapshotter;
 import io.debezium.snapshot.mode.InitialSnapshotter;
-import io.debezium.snapshot.mode.NeverSnapshotter;
 import io.debezium.snapshot.mode.NoDataSnapshotter;
 import io.debezium.snapshot.mode.RecoverySnapshotter;
+import io.debezium.snapshot.mode.WhenNeededNoDataSnapshotter;
 import io.debezium.snapshot.mode.WhenNeededSnapshotter;
 import io.debezium.snapshot.spi.SnapshotLock;
 import io.debezium.storage.file.history.FileSchemaHistory;
+import io.quarkus.arc.deployment.AdditionalBeanBuildItem;
 import io.quarkus.deployment.annotations.BuildProducer;
 import io.quarkus.deployment.annotations.BuildStep;
 import io.quarkus.deployment.builditem.CombinedIndexBuildItem;
 import io.quarkus.deployment.builditem.IndexDependencyBuildItem;
 import io.quarkus.deployment.builditem.nativeimage.NativeImageResourceBuildItem;
 import io.quarkus.deployment.builditem.nativeimage.ReflectiveClassBuildItem;
-import io.quarkus.deployment.builditem.nativeimage.RuntimeInitializedClassBuildItem;
-import org.apache.kafka.common.security.authenticator.SaslClientAuthenticator;
-import org.apache.kafka.connect.json.JsonConverter;
+import io.quarkus.deployment.builditem.nativeimage.ServiceProviderBuildItem;
+import org.apache.camel.quarkus.support.debezium.DebeziumComponentObserver;
 import org.apache.kafka.connect.source.SourceTask;
 import org.jboss.jandex.DotName;
 import org.jboss.jandex.IndexView;
@@ -63,21 +65,26 @@ public class DebeziumSupportProcessor {
     }
 
     @BuildStep
-    RuntimeInitializedClassBuildItem runtimeInitializedClasses() {
-        return new RuntimeInitializedClassBuildItem(SaslClientAuthenticator.class.getName());
+    public void configureKafkaComponentForDevServices(BuildProducer<AdditionalBeanBuildItem> additionalBean) {
+        additionalBean.produce(AdditionalBeanBuildItem.unremovableOf(DebeziumComponentObserver.class));
     }
 
     @BuildStep
     void reflectiveClasses(CombinedIndexBuildItem combinedIndex, BuildProducer<ReflectiveClassBuildItem> reflectiveClasses) {
         IndexView index = combinedIndex.getIndex();
 
-        String[] dtos = index.getKnownClasses().stream().map(ci -> ci.name().toString())
-                .filter(n -> n.startsWith("org.apache.kafka.connect.json")
-                        || n.startsWith("io.debezium.engine.spi"))
+        String[] debeziumEngineSpiClasses = index.getKnownClasses().stream().map(ci -> ci.name().toString())
+                .filter(n -> n.startsWith("io.debezium.engine.spi"))
                 .toArray(String[]::new);
-        reflectiveClasses.produce(ReflectiveClassBuildItem.builder(dtos).fields().build());
+        reflectiveClasses.produce(ReflectiveClassBuildItem.builder(debeziumEngineSpiClasses).fields().build());
 
-        dtos = index.getAllKnownImplementations(DotName.createSimple(SnapshotLock.class.getName())).stream()
+        String[] jsonConverters = index.getKnownClasses().stream().map(ci -> ci.name().toString())
+                .filter(n -> n.startsWith("org.apache.kafka.connect.json"))
+                .toArray(String[]::new);
+        reflectiveClasses.produce(
+                ReflectiveClassBuildItem.builder(jsonConverters).fields().constructors().methods().build());
+
+        String[] dtos = index.getAllKnownImplementations(DotName.createSimple(SnapshotLock.class.getName())).stream()
                 .map(ci -> ci.name().toString())
                 .toArray(String[]::new);
         reflectiveClasses.produce(ReflectiveClassBuildItem.builder(dtos).fields().build());
@@ -85,20 +92,17 @@ public class DebeziumSupportProcessor {
         reflectiveClasses.produce(ReflectiveClassBuildItem.builder(
                 "org.apache.kafka.connect.storage.FileOffsetBackingStore",
                 "org.apache.kafka.connect.storage.MemoryOffsetBackingStore",
+                "org.apache.kafka.connect.storage.KafkaOffsetBackingStore",
                 "io.debezium.storage.kafka.history.KafkaSchemaHistory",
                 "io.debezium.relational.history.FileDatabaseHistory",
                 "io.debezium.embedded.ConvertingEngineBuilderFactory",
                 "io.debezium.processors.PostProcessorRegistry",
-                "io.debezium.pipeline.txmetadata.DefaultTransactionMetadataFactory",
-                "io.debezium.schema.SchemaTopicNamingStrategy",
-                "io.debezium.storage.file.history.FileSchemaHistory")
+                "io.debezium.relational.ConcurrentMapTableMappingStorage")
                 .build());
 
         reflectiveClasses.produce(ReflectiveClassBuildItem.builder(
                 DebeziumEngine.BuilderFactory.class,
                 ConvertingAsyncEngineBuilderFactory.class,
-                SaslClientAuthenticator.class,
-                JsonConverter.class,
                 DefaultTransactionMetadataFactory.class,
                 SchemaTopicNamingStrategy.class,
                 BaseSourceTask.class,
@@ -113,7 +117,7 @@ public class DebeziumSupportProcessor {
                 NoDataSnapshotter.class,
                 RecoverySnapshotter.class,
                 WhenNeededSnapshotter.class,
-                NeverSnapshotter.class,
+                WhenNeededNoDataSnapshotter.class,
                 ConfigurationBasedSnapshotter.class,
                 SourceSignalChannel.class,
                 KafkaSignalChannel.class,
@@ -122,11 +126,20 @@ public class DebeziumSupportProcessor {
                 InProcessSignalChannel.class,
                 StandardActionProvider.class,
                 SourceTask.class,
-                ConvertingAsyncEngineBuilderFactory.class,
-                DefaultTransactionMetadataFactory.class,
-                SchemaTopicNamingStrategy.class,
-                FileSchemaHistory.class)
+                FileSchemaHistory.class,
+                DefaultQueueProvider.class)
                 .build());
+
+    }
+
+    @BuildStep
+    ServiceProviderBuildItem registerConverterServiceProviders() {
+        return ServiceProviderBuildItem.allProvidersFromClassPath("org.apache.kafka.connect.storage.Converter");
+    }
+
+    @BuildStep
+    ServiceProviderBuildItem registerSignalActionProviders() {
+        return ServiceProviderBuildItem.allProvidersFromClassPath(SignalActionProvider.class.getName());
     }
 
     @BuildStep
@@ -144,6 +157,7 @@ public class DebeziumSupportProcessor {
 
         resources.produce(new NativeImageResourceBuildItem("META-INF/services/io.debezium.snapshot.spi.SnapshotLock"));
         resources.produce(new NativeImageResourceBuildItem("META-INF/services/io.debezium.snapshot.spi.SnapshotQuery"));
+        resources.produce(new NativeImageResourceBuildItem("META-INF/services/io.debezium.connector.base.QueueProvider"));
         resources
                 .produce(new NativeImageResourceBuildItem("META-INF/services/org.apache.kafka.connect.source.SourceConnector"));
     }

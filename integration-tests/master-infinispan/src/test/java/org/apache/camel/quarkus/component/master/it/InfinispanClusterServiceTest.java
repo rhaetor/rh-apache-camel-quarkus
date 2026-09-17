@@ -32,7 +32,7 @@ import org.apache.commons.io.FileUtils;
 import org.awaitility.Awaitility;
 import org.eclipse.microprofile.config.Config;
 import org.eclipse.microprofile.config.ConfigProvider;
-import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.zeroturnaround.exec.StartedProcess;
 
@@ -42,15 +42,15 @@ import static org.hamcrest.Matchers.emptyString;
 @QuarkusTest
 @QuarkusTestResource(InfinispanClusterServiceTestResource.class)
 class InfinispanClusterServiceTest {
-    @AfterEach
-    public void deleteClusterFiles() throws IOException {
-        FileUtils.deleteDirectory(Paths.get("target/cluster/").toFile());
+    @BeforeEach
+    public void deleteClusterFiles() {
+        FileUtils.deleteQuietly(Paths.get("target/cluster/").toFile());
     }
 
     @Test
     void testFailover() throws IOException {
         // Verify that this process is the cluster leader
-        Awaitility.await().atMost(10, TimeUnit.SECONDS).with().until(() -> {
+        Awaitility.await().atMost(60, TimeUnit.SECONDS).with().until(() -> {
             return readLeaderFile("leader").equals("leader");
         });
 
@@ -65,6 +65,10 @@ class InfinispanClusterServiceTest {
                 jvmArgs.add("-D%s=%s".formatted(configName, configValue));
             }
         }
+
+        // Use a distinct cluster service ID so the follower is not mistaken for the
+        // leader recovering from a crash by InfinispanRemoteClusterView's lock logic
+        jvmArgs.add("-Dquarkus.camel.cluster.infinispan.id=follower");
 
         // Start secondary application process
         QuarkusProcessExecutor quarkusProcessExecutor = new QuarkusProcessExecutor(jvmArgs.toArray(String[]::new));
@@ -82,7 +86,7 @@ class InfinispanClusterServiceTest {
 
             // Verify that the secondary application has been elected as the
             // cluster leader
-            Awaitility.await().atMost(10, TimeUnit.SECONDS).until(() -> {
+            Awaitility.await().atMost(60, TimeUnit.SECONDS).until(() -> {
                 return readLeaderFile("follower").equals("leader");
             });
         } finally {
@@ -93,7 +97,7 @@ class InfinispanClusterServiceTest {
     }
 
     private void awaitStartup(QuarkusProcessExecutor quarkusProcessExecutor) {
-        Awaitility.await().atMost(10, TimeUnit.SECONDS).pollDelay(1, TimeUnit.SECONDS).until(() -> {
+        Awaitility.await().atMost(60, TimeUnit.SECONDS).pollDelay(1, TimeUnit.SECONDS).until(() -> {
             return isApplicationHealthy(quarkusProcessExecutor.getHttpPort());
         });
     }

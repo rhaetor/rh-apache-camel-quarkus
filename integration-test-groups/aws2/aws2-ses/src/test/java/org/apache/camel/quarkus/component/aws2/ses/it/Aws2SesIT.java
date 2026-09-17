@@ -19,8 +19,7 @@ package org.apache.camel.quarkus.component.aws2.ses.it;
 import io.quarkus.test.junit.QuarkusIntegrationTest;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 
-/* Disabled on Localstack because Localstack does not send e-mails which we do assume in our tests
- * See https://github.com/localstack/localstack/issues/339#issuecomment-341727758 */
+/* Disabled on mock backend because it does not send e-mails which we do assume in our tests */
 @EnabledIfEnvironmentVariable(named = "AWS_ACCESS_KEY", matches = "[a-zA-Z0-9]+")
 @EnabledIfEnvironmentVariable(named = "MAILSLURP_API_KEY", matches = "[a-zA-Z0-9]+")
 @QuarkusIntegrationTest

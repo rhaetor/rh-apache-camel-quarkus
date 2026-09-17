@@ -4,10 +4,10 @@ cqArtifactId: camel-quarkus-irc
 cqArtifactIdBase: irc
 cqNativeSupported: false
 cqStatus: Preview
-cqDeprecated: false
+cqDeprecated: true
 cqJvmSince: 1.1.0
 cqNativeSince: n/a
 cqCamelPartName: irc
 cqCamelPartTitle: IRC
-cqCamelPartDescription: Send and receive messages to/from and IRC chat.
+cqCamelPartDescription: Send and receive messages to/from an IRC chat.
 cqExtensionPageTitle: IRC

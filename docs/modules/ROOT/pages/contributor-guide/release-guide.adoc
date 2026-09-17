@@ -1,6 +1,8 @@
 = Apache Camel Quarkus release process
 :page-aliases: release-guide.adoc
 
+NOTE: Unless a Long Term Support (LTS) version of the documentation exists for your target release version, it is generally better to use the 'next' version of the documentation.
+
 The process is _mutatis mutandis_ the same as for the main Apache Camel repository - see the
 xref:manual::release-guide.adoc[Release guide] page of the Camel documentation.
 
@@ -425,7 +427,7 @@ NEW_PLATFORM_VERSION=... # E.g. 2.2.0.Final
 git fetch upstream
 git checkout camel-quarkus-main
 git reset --hard upstream/camel-quarkus-main
-mvn org.l2x6.cq:cq-maven-plugin:2.10.0:examples-set-platform -Dcq.quarkus.platform.version=$NEW_PLATFORM_VERSION
+./mvnw org.l2x6.cq:cq-maven-plugin:examples-set-platform -Dcq.quarkus.platform.version=$NEW_PLATFORM_VERSION
 ./refresh-dockerfiles.sh
 git add -A
 git commit -m "Upgrade to Quarkus Platform $NEW_PLATFORM_VERSION"
@@ -435,7 +437,7 @@ git commit -m "Upgrade to Quarkus Platform $NEW_PLATFORM_VERSION"
 +
 [source,shell]
 ----
-./mvnw-for-each.sh clean verify
+./mvnw clean verify
 ----
 +
 * If everything works for you locally, open a PR to merge `camel-quarkus-main` to `main`
@@ -447,9 +449,9 @@ NEW_CQ_VERSION=... # the recent release of Camel Quarkus; e.g. 2.2.0
 git checkout main
 git fetch upstream
 git reset --hard upstream/main
-./mvnw-for-each.sh versions:set versions:update-child-modules -DnewVersion=$NEW_CQ_VERSION
+./mvnw versions:set -DnewVersion=$NEW_CQ_VERSION -DprocessAllModules=true
 # Update version labels in Kubernetes resources
-./mvnw-for-each.sh process-sources
+./mvnw process-sources
 git add -A
 git commit -m "Tag $NEW_CQ_VERSION"
 git tag $NEW_CQ_VERSION
@@ -468,10 +470,11 @@ git push upstream $BRANCH
 NEXT_CQ_VERSION=... # The version used in the current Camel Quarkus main branch without the -SNAPSHOT suffix; e.g. 2.3.0
 git checkout camel-quarkus-main
 git reset --hard main
-./mvnw org.l2x6.cq:cq-maven-plugin:2.10.0:examples-set-platform -Dcq.camel-quarkus.version=${NEXT_CQ_VERSION}-SNAPSHOT -Dcq.newVersion=${NEXT_CQ_VERSION}-SNAPSHOT
-./mvnw-for-each.sh versions:update-child-modules -N
+./mvnw org.l2x6.cq:cq-maven-plugin:examples-set-platform -Dcq.camel-quarkus.version=${NEXT_CQ_VERSION}-SNAPSHOT
+# Set the version of the aggregator pom.xml and of all example projects
+./mvnw versions:set -DnewVersion=${NEXT_CQ_VERSION}-SNAPSHOT -DprocessAllModules=true
 # Update version labels in Kubernetes resources
-./mvnw-for-each.sh process-sources
+./mvnw process-sources
 git add -A
 git commit -m "Next is $NEXT_CQ_VERSION"
 git push upstream camel-quarkus-main --force-with-lease
@@ -519,4 +522,20 @@ ssh -T git@gitbox.apache.org
 git config --global credential.helper store
 ssh-add -l
 mvn help:evaluate -Dexpression=env.SSH_AUTH_SOCK -q -DforceStdout
+----
+
+=== GPG signing failure caused by a stale lock file
+If GPG signing fails during the release with output such as:
+----
+[INFO] [INFO] Signer 'gpg' is signing 4 files with key default
+[INFO] gpg: Note: database_open 134217901 waiting for lock (held by 5376) ...
+[INFO] gpg: keydb_search failed: Connection timed out
+[INFO] gpg: no default secret key: Connection timed out
+[INFO] gpg: signing failed: Connection timed out
+----
+the cause may be a stale lock file in the GnuPG keybox database. The lock
+references the process ID that created it (`held by 5376`). If no such process
+is running, remove the lock file:
+----
+sudo rm ~/.gnupg/public-keys.d/pubring.db.lock
 ----

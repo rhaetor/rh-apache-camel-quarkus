@@ -29,6 +29,7 @@ import io.restassured.response.Response;
 import io.restassured.specification.RequestSpecification;
 import org.apache.camel.component.springrabbit.SpringRabbitMQConstants;
 import org.awaitility.Awaitility;
+import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.amqp.core.AmqpAdmin;
@@ -81,7 +82,8 @@ class SpringRabbitmqTest {
                         SpringRabbitMQConstants.TYPE, "price",
                         SpringRabbitMQConstants.CONTENT_TYPE, "application/xml",
                         SpringRabbitMQConstants.MESSAGE_ID, "0fe9c142-f9c1-426f-9237-f5a4c988a8ae",
-                        SpringRabbitMQConstants.PRIORITY, 1));
+                        SpringRabbitMQConstants.PRIORITY, 1,
+                        "TestHeader", "testValue"));
 
         RestAssured.given()
                 .queryParam("exchange", "exchange-for-headersToProperties")
@@ -106,9 +108,10 @@ class SpringRabbitmqTest {
             assertThat(messageProperties.getContentType()).isEqualTo("application/xml");
             assertThat(messageProperties.getMessageId()).isEqualTo("0fe9c142-f9c1-426f-9237-f5a4c988a8ae");
             assertThat(messageProperties.getPriority()).isEqualTo(1);
-            //the only headers preserved by customHeadersFilterStrategy is "CamelSpringRabbitmqMessageId
+            //the only header preserved by customHeadersFilterStrategy is "TestHeader"
             assertThat(messageProperties.getHeaders().size()).isEqualTo(1);
-            assertThat(messageProperties.getHeaders()).containsKey("CamelSpringRabbitmqMessageId");
+            assertThat(messageProperties.getHeaders()).containsKey("TestHeader");
+            assertThat(messageProperties.getHeaders().get("TestHeader")).isEqualTo("testValue");
         });
     }
 
@@ -347,11 +350,13 @@ class SpringRabbitmqTest {
                 .then()
                 .statusCode(204);
 
-        //message ends in deadletter
-        getFromDirect("direct:deadletter-DL")
-                .then()
-                .statusCode(200)
-                .body(is("Hello from deadletter: Hello"));
+        //stop route (and wait for stop)
+        Awaitility.await().atMost(30, TimeUnit.SECONDS).until(
+                () -> getFromDirect("direct:deadletter-DL")
+                        .then()
+                        .statusCode(200)
+                        .extract().asString(),
+                Matchers.is("Hello from deadletter: Hello"));
 
         //no message ends in the "successful scenario" direct
         getFromDirect("direct:deadletter")
@@ -377,7 +382,7 @@ class SpringRabbitmqTest {
     }
 
     private void bindQueue(String queue, String exchange, String routingKey) {
-        Queue q = new Queue(queue, false);
+        Queue q = new Queue(queue, true);
 
         AmqpAdmin admin = new RabbitAdmin(connectionFactory);
         admin.declareQueue(q);

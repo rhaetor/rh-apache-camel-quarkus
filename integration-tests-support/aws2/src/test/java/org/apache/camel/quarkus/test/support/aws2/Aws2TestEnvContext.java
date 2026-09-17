@@ -17,6 +17,7 @@
 package org.apache.camel.quarkus.test.support.aws2;
 
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -30,7 +31,7 @@ import java.util.Optional;
 import java.util.function.Supplier;
 
 import org.jboss.logging.Logger;
-import org.testcontainers.localstack.LocalStackContainer;
+import org.testcontainers.containers.GenericContainer;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
@@ -54,20 +55,20 @@ public class Aws2TestEnvContext {
     private final String accessKey;
     private final String secretKey;
     private final String region;
-    private final Optional<LocalStackContainer> localstack;
+    private final Optional<GenericContainer<?>> floci;
     private final CredentialsProvider credentialsProvider;
 
     public Aws2TestEnvContext(String accessKey, String secretKey, String region, boolean useDefaultCredentialsProvider,
-            Optional<LocalStackContainer> localstack,
+            Optional<GenericContainer<?>> floci,
             Service[] exportCredentialsServices) {
         this.accessKey = accessKey;
         this.secretKey = secretKey;
         this.region = region;
-        this.localstack = localstack;
+        this.floci = floci;
         this.credentialsProvider = useDefaultCredentialsProvider ? CredentialsProvider.defaultProvider
                 : CredentialsProvider.staticProvider;
 
-        localstack.ifPresent(ls -> {
+        floci.ifPresent(fc -> {
             for (Service service : exportCredentialsServices) {
                 String s = camelServiceComponentName(service);
                 if (s != null) {
@@ -79,7 +80,12 @@ public class Aws2TestEnvContext {
 
                     properties.put(s + ".override-endpoint", "true");
                     properties.put(s + ".uri-endpoint-override",
-                            ls.getEndpoint().toString());
+                            String.format("http://%s:%d", fc.getHost(), fc.getMappedPort(Aws2TestResource.FLOCI_PORT)));
+
+                    // S3 requires path-style access with Floci to avoid virtual-host DNS issues
+                    if (service == Service.S3) {
+                        properties.put(s + ".force-path-style", "true");
+                    }
                 }
             }
         });
@@ -156,8 +162,8 @@ public class Aws2TestEnvContext {
             }
         }
 
-        if (localstack.isPresent()) {
-            localstack.get().stop();
+        if (floci.isPresent()) {
+            floci.get().stop();
         }
     }
 
@@ -180,10 +186,25 @@ public class Aws2TestEnvContext {
                                 : StaticCredentialsProvider.create(AwsBasicCredentials.create(accessKey, secretKey)));
         builder.region(Region.of(region));
 
-        if (localstack.isPresent()) {
+        if (floci.isPresent()) {
+            GenericContainer<?> container = floci.get();
+            URI endpoint = URI.create(String.format("http://%s:%d",
+                    container.getHost(),
+                    container.getMappedPort(Aws2TestResource.FLOCI_PORT)));
             builder
-                    .endpointOverride(localstack.get().getEndpoint())
+                    .endpointOverride(endpoint)
                     .region(Region.of(region));
+
+            // S3 requires path-style access with Floci to avoid virtual-host DNS issues
+            if (service == Service.S3) {
+                try {
+                    Method m = builder.getClass().getMethod("forcePathStyle", Boolean.class);
+                    m.setAccessible(true);
+                    m.invoke(builder, Boolean.TRUE);
+                } catch (ReflectiveOperationException e) {
+                    throw new RuntimeException("Could not set forcePathStyle on S3 client builder", e);
+                }
+            }
         } else if (service == Service.IAM) {
             /* Avoid UnknownHostException: iam.eu-central-1.amazonaws.com */
             builder.endpointOverride(URI.create("https://iam.amazonaws.com"));
@@ -240,8 +261,8 @@ public class Aws2TestEnvContext {
         return secretKey;
     }
 
-    public boolean isLocalStack() {
-        return localstack.isPresent();
+    public boolean isMockBackend() {
+        return floci.isPresent();
     }
 
     public boolean isUseDefaultCredentialsProvider() {

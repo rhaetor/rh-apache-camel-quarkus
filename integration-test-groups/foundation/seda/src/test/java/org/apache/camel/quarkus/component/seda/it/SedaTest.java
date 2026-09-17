@@ -22,6 +22,7 @@ import io.restassured.http.ContentType;
 import org.junit.jupiter.api.Test;
 
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.is;
 
 @QuarkusTest
 class SedaTest {
@@ -35,4 +36,17 @@ class SedaTest {
         RestAssured.get("/seda/foo").then().body(equalTo("Hello World")).statusCode(200);
     }
 
+    @Test
+    void virtualThreadsDisabled() {
+        RestAssured.given()
+                .contentType(ContentType.TEXT)
+                .post("/seda/virtualThreaded")
+                .then()
+                .statusCode(201);
+
+        RestAssured.get("/seda/virtualThreadedResults")
+                .then()
+                .body(is(Thread.class.getName()))
+                .statusCode(200);
+    }
 }

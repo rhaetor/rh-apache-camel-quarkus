@@ -22,13 +22,13 @@
     <parent>
         <groupId>org.apache.camel.quarkus</groupId>
         <artifactId>camel-quarkus-dsl-modeline-parent</artifactId>
-        <version>3.35.0-SNAPSHOT</version>
+        <version>3.40.0-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
     <artifactId>camel-quarkus-dsl-modeline</artifactId>
     <name>Camel Quarkus :: DSL Modeline :: Runtime</name>
-    <description>Support for Camel K style modeline</description>
+    <description>Camel DSL modeline</description>
 
     <properties>
         <camel.quarkus.jvmSince>2.14.0</camel.quarkus.jvmSince>

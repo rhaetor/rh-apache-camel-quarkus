@@ -30,7 +30,10 @@ metadata:
   categories:
   - "integration"
   config:
-  - "camel.dataformat"
   - "quarkus.camel"
   - "quarkus.camel.main"
   status: "stable"
+  integrates:
+    - name: "Camel"
+      artifact: "org.apache.camel:camel-base"
+      version: "${camel.version}"

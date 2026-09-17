@@ -22,13 +22,13 @@
     <parent>
         <groupId>org.apache.camel.quarkus</groupId>
         <artifactId>camel-quarkus-jta-parent</artifactId>
-        <version>3.35.0-SNAPSHOT</version>
+        <version>3.40.0-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
     <artifactId>camel-quarkus-jta</artifactId>
     <name>Camel Quarkus :: JTA :: Runtime</name>
-    <description>Enclose Camel routes in transactions using Java Transaction API (JTA) and Narayana transaction manager</description>
+    <description>Using Camel With JTA Transaction Manager</description>
 
     <properties>
         <camel.quarkus.jvmSince>1.0.0</camel.quarkus.jvmSince>

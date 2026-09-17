@@ -22,13 +22,13 @@
     <parent>
         <groupId>org.apache.camel.quarkus</groupId>
         <artifactId>camel-quarkus-barcode-parent</artifactId>
-        <version>3.35.0-SNAPSHOT</version>
+        <version>3.40.0-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
     <artifactId>camel-quarkus-barcode</artifactId>
     <name>Camel Quarkus :: Barcode :: Runtime</name>
-    <description>Transform strings to various 1D/2D barcode bitmap formats and back.</description>
+    <description>Transform strings to various 1D/2D barcode bitmap formats and back</description>
 
     <properties>
         <camel.quarkus.jvmSince>1.1.0</camel.quarkus.jvmSince>

@@ -18,17 +18,16 @@ package org.apache.camel.quarkus.component.jolokia.it;
 
 import javax.management.ObjectName;
 
-import org.jolokia.server.core.restrictor.AllowAllRestrictor;
+import org.apache.camel.quarkus.jolokia.restrictor.CamelJolokiaRestrictor;
 
 /**
- * Only allows MBean operation sendStringBody.
+ * Only allows MBean operation sendStringBody, on top of everything CamelJolokiaRestrictor already enforces.
  */
-public class CustomRestrictor extends AllowAllRestrictor {
+public class CustomRestrictor extends CamelJolokiaRestrictor {
     @Override
-    public boolean isOperationAllowed(ObjectName pName, String pOperation) {
-        if (pOperation.startsWith("sendStringBody")) {
-            return true;
-        }
-        return false;
+    protected boolean allowsOperation(ObjectName pName, String pOperation) {
+        // Asked only once the inherited checks have allowed the operation, so the MBean domain restriction
+        // still applies whatever this returns
+        return pOperation.startsWith("sendStringBody");
     }
 }

@@ -22,13 +22,13 @@
     <parent>
         <groupId>org.apache.camel.quarkus</groupId>
         <artifactId>camel-quarkus-beanio-parent</artifactId>
-        <version>3.35.0-SNAPSHOT</version>
+        <version>3.40.0-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
     <artifactId>camel-quarkus-beanio</artifactId>
     <name>Camel Quarkus :: BeanIO :: Runtime</name>
-    <description>Marshal and unmarshal Java beans to and from flat files (such as CSV, delimited, or fixed length formats).</description>
+    <description>Marshal and unmarshal Java beans to and from flat files (such as CSV, delimited, or fixed length formats)</description>
 
     <properties>
         <camel.quarkus.jvmSince>3.8.0</camel.quarkus.jvmSince>

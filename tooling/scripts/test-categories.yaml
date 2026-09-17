@@ -16,6 +16,7 @@
 #
 
 # Association of test categories and integration test modules. Used by GitHub workflows. Keep sorted alphabetically.
+# To periodically rebalance groups run: mvn org.apache.camel.quarkus:camel-quarkus-maven-plugin:rebalance-test-groups -Dcq.ciRunId=<GitHub Workflow Run ID> -N
 group-01:
   - caffeine
   - qdrant
@@ -40,7 +41,6 @@ group-02:
   - beanio
   - cyberark-vault
   - google-pubsub
-  - groovy-xml
   - grpc
   - iso8583
   - jackson-avro
@@ -49,7 +49,10 @@ group-02:
   - kafka-oauth
   - keycloak
   - langchain4j-agent
+  - langchain4j-agent-bean-binding-ql4j
+  - langchain4j-agent-ql4j
   - oaipmh
+  - ocsf
   - pubnub
   - protobuf
   - smallrye-reactive-messaging
@@ -58,18 +61,21 @@ group-02:
 group-03:
   - bean-validator
   - box
+  - elasticsearch
   - elasticsearch-rest-client
   - foundation-grouped
   - freemarker
-  - github
   - google
+  - jolokia
   - json-validator
   - mail-microsoft-oauth
   - main
   - main-command-mode
+  - main-unknown-args-fail
   - main-xml-io
   - main-xml-jaxb
   - main-yaml
+  - microprofile-health
   - shiro
   - twitter
   - validator
@@ -86,12 +92,14 @@ group-04:
   - leveldb
   - mdc
   - micrometer
+  - micrometer-observability
   - minio
   - mongodb-grouped
   - mybatis
   - observability-services
   - sjms-artemis-client
 group-05:
+  - a2a
   - avro
   - base64
   - bindy
@@ -117,6 +125,7 @@ group-06:
   - headersmap
   - jsonpath
   - kamelet
+  - langchain4j-chat-ql4j
   - lra
   - master-openshift
   - openstack
@@ -134,6 +143,9 @@ group-07:
   - jslt
   - ldap
   - langchain4j-embeddings
+  - langchain4j-embeddings-ql4j
+  - langchain4j-ingest
+  - langchain4j-rag-bridge-ql4j
   - lumberjack
   - ognl
   - olingo4
@@ -149,11 +161,14 @@ group-08:
   - azure-grouped
   - crypto
   - crypto-pgp
+  - joor
   - jq
   - langchain4j-chat
+  - main-unknown-args-ignore
   - master-file
   - pdf
   - pinecone
+  - pqc
   - saxon
   - syndication
   - telegram
@@ -185,28 +200,28 @@ group-10:
   - digitalocean
   - docling
   - fop
-  - google-secret-manager
   - groovy
   - ibm-cos
-  - jolokia
-  - joor
-  - langchain4j-tokenizer
+  - ibm-watson-discovery
+  - ibm-watson-language
+  - ai-tool-langchain4j
   - mail
-  - main-unknown-args-fail
-  - main-unknown-args-ignore
-  - microprofile-health
   - platform-http-proxy
   - platform-http-proxy-ssl
   - solr
   - swift
+  - tls-registry
   - weaviate
 group-11:
   - compression-grouped
   - disruptor
   - flatpack
+  - google-secret-manager
   - grok
   - jolt
+  - jsoup
   - jsonata
+  - langchain4j-tokenizer
   - milo
   - mustache
   - netty
@@ -221,13 +236,17 @@ group-11:
   - xml-grouped
   - xslt-saxon
 group-12:
+  - ai-tool
   - aws2-grouped
   - csimple
+  - github2
   - quartz-clustered
   - knative
   - langchain4j-web-search
   - langchain4j-tools
+  - mcp-server
   - openapi-java
+  - openapi-validator
   - paho-mqtt5
   - platform-http
   - reactive-streams
@@ -244,12 +263,12 @@ group-13:
   - jdbc-grouped
   - kubernetes
   - langchain4j-embeddingstore
+  - langchain4j-embeddingstore-ql4j
   - milvus
   - salesforce
   - sap-netweaver
   - servicenow
   - slack
-  - nitrite
   - twilio
   - pgevent
-  
+  - rocketmq

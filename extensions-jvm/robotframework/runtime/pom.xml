@@ -22,13 +22,13 @@
     <parent>
         <groupId>org.apache.camel.quarkus</groupId>
         <artifactId>camel-quarkus-robotframework-parent</artifactId>
-        <version>3.35.0-SNAPSHOT</version>
+        <version>3.40.0-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
     <artifactId>camel-quarkus-robotframework</artifactId>
     <name>Camel Quarkus :: Robot Framework :: Runtime</name>
-    <description>Pass camel exchanges to acceptence test written in Robot DSL.</description>
+    <description>Pass camel exchanges to acceptance test written in Robot DSL.</description>
 
     <properties>
         <camel.quarkus.jvmSince>1.1.0</camel.quarkus.jvmSince>
